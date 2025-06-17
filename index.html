@@ -4808,7 +4808,7 @@
 
         // Function to start the test
         function startTest() {
-            const numRequested = parseInt(numQuestionsInput.value, 10);
+            const numRequested = parseInt(numQuestionsInput.value, 36);
             if (isNaN(numRequested) || numRequested <= 0 || numRequested > mcqData.length) {
                 errorMessage.textContent = `Please enter a number between 1 and ${mcqData.length}.`;
                 errorMessage.style.display = 'block';
@@ -4909,7 +4909,7 @@
             resetTestBtn.style.display = 'none';
             startTestBtn.style.display = 'block';
             numQuestionsInput.disabled = false;
-            numQuestionsInput.value = 10; // Reset to default
+            numQuestionsInput.value = 36; // Reset to default
             currentQuizQuestions = [];
         }
 
