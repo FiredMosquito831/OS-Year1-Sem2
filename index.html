@@ -1,0 +1,4922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .question-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c5282;
+        }
+        .option-label {
+            display: block;
+            margin-bottom: 10px;
+            cursor: pointer;
+            padding: 10px 15px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+        }
+        .option-label:hover {
+            background-color: #ebf8ff;
+            border-color: #90cdf4;
+        }
+        .option-label input[type="radio"],
+        .option-label input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.1);
+        }
+        .option-label.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .option-label.incorrect {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .option-label.selected-incorrect {
+            background-color: #f8d7da; /* Light red for user's incorrect choice */
+            border-color: #dc3545;
+        }
+        .option-label.correct-not-selected {
+            background-color: #d4edda; /* Light green for correct answer not selected by user */
+            border-color: #28a745;
+        }
+        .control-panel {
+            background-color: #e0f2f7;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .button {
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .button-primary {
+            background-color: #4299e1;
+            color: white;
+            border: none;
+        }
+        .button-primary:hover {
+            background-color: #3182ce;
+            transform: translateY(-2px);
+        }
+        .button-secondary {
+            background-color: #cbd5e0;
+            color: #2d3748;
+            border: none;
+        }
+        .button-secondary:hover {
+            background-color: #a0aec0;
+            transform: translateY(-2px);
+        }
+        .results {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f0fdf4;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #065f46;
+            text-align: center;
+        }
+        .error-message {
+            color: #e53e3e;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        @media (min-width: 640px) {
+            .flex-row {
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center mb-6 text-blue-800">MCQ Test</h1>
+
+        <div class="control-panel">
+            <label for="num-questions" class="text-lg font-medium text-blue-700">Number of Questions (max 393):</label>
+            <input type="number" id="num-questions" value="10" min="1" max="393"
+                   class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex-row">
+                <button id="start-test-btn" class="button button-primary flex-grow">Start Test</button>
+                <button id="evaluate-btn" class="button button-primary flex-grow" style="display: none;">Evaluate Answers</button>
+                <button id="reset-test-btn" class="button button-secondary flex-grow" style="display: none;">Reset Test</button>
+            </div>
+            <div id="error-message" class="error-message" style="display: none;"></div>
+        </div>
+
+        <div id="quiz-container" class="mt-8">
+            <!-- Questions will be loaded here -->
+        </div>
+
+        <div id="results-display" class="results" style="display: none;">
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        const mcqData = [
+            {
+                "question": "When choosing a distribution of Linux, you should consider: (choose four)",
+                "options": [
+                    "Does your organization require long-term support for the system",
+                    "Does the distribution offer a 'stable' version",
+                    "If the application software is supported by the distribution",
+                    "Will commercial support be required for the OS",
+                    "Popularity on social media"
+                ],
+                "correct_answers": [
+                    "Does your organization require long-term support for the system",
+                    "Does the distribution offer a 'stable' version",
+                    "If the application software is supported by the distribution",
+                    "Will commercial support be required for the OS"
+                ]
+            },
+            {
+                "question": "Embedded Systems means:",
+                "options": [
+                    "Users must support the systems themselves",
+                    "You can view the software's source code",
+                    "Companies must share their changes",
+                    "Businesses cannot charge anything for the software, only the hardware",
+                    "Systems designed to do a specific task on hardware optimized for only that purpose"
+                ],
+                "correct_answers": [
+                    "Systems designed to do a specific task on hardware optimized for only that purpose"
+                ]
+            },
+            {
+                "question": "The most popular Linux platform for mobile phones is:",
+                "options": [
+                    "10S",
+                    "Android",
+                    "BlackBerry",
+                    "Slackware",
+                    "MobileLinux"
+                ],
+                "correct_answers": [
+                    "Android"
+                ]
+            },
+            {
+                "question": "Linux distributions use this to add and remove software from the system:",
+                "options": [
+                    "Application Programming Interface (API)",
+                    "Partitioning tool",
+                    "Package manager",
+                    "Bash",
+                    "Compiler"
+                ],
+                "correct_answers": [
+                    "Package manager"
+                ]
+            },
+            {
+                "question": "In Linux, RPM can be defined as:",
+                "options": [
+                    "Random program memory",
+                    "Relational peak monitoring",
+                    "Radical performance machine",
+                    "The speed a record plays back at",
+                    "The Package Manager program for Red Hat Linux"
+                ],
+                "correct_answers": [
+                    "The Package Manager program for Red Hat Linux"
+                ]
+            },
+            {
+                "question": "Linux originally only ran on:",
+                "options": [
+                    "Macintosh",
+                    "Intel 386 PCS",
+                    "Raspberry Pi computers",
+                    "Specialized processor chips",
+                    "Xerox copy machines"
+                ],
+                "correct_answers": [
+                    "Intel 386 PCS"
+                ]
+            },
+            {
+                "question": "A long software release cycle is:",
+                "options": [
+                    "Better because old hardware can be utilized beyond its service life",
+                    "Only offered by Red Hat and SUSE",
+                    "Makes programming more difficult since new features cannot be used",
+                    "Valued by businesses that want stability",
+                    "Characterized by infrequent security fixes"
+                ],
+                "correct_answers": [
+                    "Valued by businesses that want stability"
+                ]
+            },
+            {
+                "question": "Which distribution is related to Red Hat?",
+                "options": [
+                    "Raspbian",
+                    "Debian",
+                    "Ubuntu",
+                    "Slackware",
+                    "Fedora"
+                ],
+                "correct_answers": [
+                    "Fedora"
+                ]
+            },
+            {
+                "question": "SUSE is derived from which distribution?",
+                "options": [
+                    "Fedora",
+                    "Debian",
+                    "Red Hat Enterprise Linux",
+                    "Slackware",
+                    "Scientific Linux"
+                ],
+                "correct_answers": [
+                    "Red Hat Enterprise Linux"
+                ]
+            },
+            {
+                "question": "IoT is one application of embedded systems: True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Artificial intelligence has little potential for gains in efficiency, safety and productivity. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "The Raspberry Pi is popular with experimenters because:",
+                "options": [
+                    "It runs Microsoft Office",
+                    "End users have to pay for programming expenses",
+                    "It's cheap and adaptable",
+                    "The hardware never changes",
+                    "It takes months or years to develop an application"
+                ],
+                "correct_answers": [
+                    "It's cheap and adaptable"
+                ]
+            },
+            {
+                "question": "The release cycle:",
+                "options": [
+                    "Only has meaning for paid software",
+                    "Should be short so you always have the freshest releases",
+                    "Should be long so that you have time before you need to upgrade",
+                    "Describes how long software will be supported",
+                    "Dictates how often software is updated"
+                ],
+                "correct_answers": [
+                    "Describes how long software will be supported"
+                ]
+            },
+            {
+                "question": "Debian is a community effort that supports many hardware platforms. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Linux Mint is:",
+                "options": [
+                    "Compatible with Android systems",
+                    "A fork of Ubuntu Linux",
+                    "A proprietary version of Ubuntu with advanced features",
+                    "A refreshing after dinner treat",
+                    "Distributed in every country without license restrictions"
+                ],
+                "correct_answers": [
+                    "A fork of Ubuntu Linux"
+                ]
+            },
+            {
+                "question": "A computer running Linux can: (choose all that apply)",
+                "options": [
+                    "Outperform proprietary systems at certain tasks",
+                    "All of the above",
+                    "Function as a web server",
+                    "Serve a government agency",
+                    "Be used to create new programs"
+                ],
+                "correct_answers": [
+                    "Outperform proprietary systems at certain tasks",
+                    "Function as a web server",
+                    "Serve a government agency",
+                    "Be used to create new programs"
+                ]
+            },
+            {
+                "question": "Bundling utilities, management tools, and application software with a Linux kernel is called a:",
+                "options": [
+                    "A distribution of Linux",
+                    "A text editor",
+                    "A type of hardware",
+                    "A trademark",
+                    "A network of inexpensive computers connected to sensors and controllers is called:"
+                ],
+                "correct_answers": [
+                    "A distribution of Linux"
+                ]
+            },
+            {
+                "question": "Internet of Things (IoT) Creative commons Open source networking Closed source computing Relationational database The Linux platform that runs on mobile phones is called:",
+                "options": [
+                    "MicroLinux",
+                    "10S",
+                    "Android",
+                    "Teledroid",
+                    "LinuxMobile"
+                ],
+                "correct_answers": [
+                    "Android"
+                ]
+            },
+            {
+                "question": "What does a distribution provide to add and remove software from the system?",
+                "options": [
+                    "Compiler",
+                    "Application Programming Interface (API)",
+                    "Bash",
+                    "Package Manager",
+                    "Partitioning tool"
+                ],
+                "correct_answers": [
+                    "Package Manager"
+                ]
+            },
+            {
+                "question": "A software release cycle describes:",
+                "options": [
+                    "How often upgrades come out for software",
+                    "How often the software's memory is released back to the operating system",
+                    "How often the computer must be upgraded to support new software",
+                    "How often security fixes are implemented",
+                    "How often the computer must be rebooted"
+                ],
+                "correct_answers": [
+                    "How often upgrades come out for software"
+                ]
+            },
+            {
+                "question": "Which distributions are made by, or are clones of, RedHat? (choose two)",
+                "options": [
+                    "Debian",
+                    "CentOS",
+                    "Fedora",
+                    "Ubuntu",
+                    "Slackware"
+                ],
+                "correct_answers": [
+                    "CentOS",
+                    "Fedora"
+                ]
+            },
+            {
+                "question": "Ubuntu is derived from which distribution?",
+                "options": [
+                    "Slackware",
+                    "Debian",
+                    "Scientific Linux",
+                    "Red Hat Enterprise Linux"
+                ],
+                "correct_answers": [
+                    "Debian"
+                ]
+            },
+            {
+                "question": "The most important consideration when choosing an operating system is:",
+                "options": [
+                    "What the intended use of the system is",
+                    "How much performance is needed",
+                    "The licensing model of the operating system",
+                    "The total cost of ownership",
+                    "Whether or not it is cloud-friendly"
+                ],
+                "correct_answers": [
+                    "What the intended use of the system is"
+                ]
+            },
+            {
+                "question": "A maintenance cycle:",
+                "options": [
+                    "Describes how often updates for software come out",
+                    "Should be short so you always have the freshest releases",
+                    "Only has meaning for paid software",
+                    "Should be long so that you have time before you need to upgrade",
+                    "Describes how long a version of software will be supported"
+                ],
+                "correct_answers": [
+                    "Describes how long a version of software will be supported"
+                ]
+            },
+            {
+                "question": "If a software release is in a state in that it has many new features that have not been rigorously tested, it is typically referred to as beta software. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Software is backward compatible if:",
+                "options": [
+                    "It can be upgraded without downtime",
+                    "People still use old versions",
+                    "It still supports old file formats or applications",
+                    "If the next version still works the same way",
+                    "It works across Linux/Mac/Windows"
+                ],
+                "correct_answers": [
+                    "It still supports old file formats or applications"
+                ]
+            },
+            {
+                "question": "Apple's OS X is: (choose three)",
+                "options": [
+                    "Derived from Linux",
+                    "Able to natively run Windows binaries",
+                    "Primarily used to manage network services",
+                    "A fully certified UNIX distribution",
+                    "Tightly integrated with Apple hardware",
+                    "Partially based on code from the FreeBSD project"
+                ],
+                "correct_answers": [
+                    "A fully certified UNIX distribution",
+                    "Tightly integrated with Apple hardware",
+                    "Partially based on code from the FreeBSD project"
+                ]
+            },
+            {
+                "question": "Microsoft Windows: (choose three)",
+                "options": [
+                    "Has a scripting environment called PowerShell",
+                    "Is generally backwards compatible with previous versions",
+                    "Offers both desktop and server products",
+                    "Has a short maintenance cycle",
+                    "Has a Linux compatibility mode",
+                    "Has a new desktop version every year."
+                ],
+                "correct_answers": [
+                    "Has a scripting environment called PowerShell",
+                    "Is generally backwards compatible with previous versions",
+                    "Offers both desktop and server products"
+                ]
+            },
+            {
+                "question": "When choosing a distribution of Linux, you should consider: (choose five)",
+                "options": [
+                    "Does the distribution offer a 'stable' version",
+                    "Will users require a GUI",
+                    "Will commercial support be required for the OS",
+                    "Does your organization require long-term support for the system",
+                    "Popularity on social media",
+                    "If the application software is supported by the distribution"
+                ],
+                "correct_answers": [
+                    "Does the distribution offer a 'stable' version",
+                    "Will users require a GUI",
+                    "Will commercial support be required for the OS",
+                    "Does your organization require long-term support for the system",
+                    "If the application software is supported by the distribution"
+                ]
+            },
+            {
+                "question": "The Samba application is a:",
+                "options": [
+                    "Security Server",
+                    "File Server",
+                    "Mail Server",
+                    "Web Server"
+                ],
+                "correct_answers": [
+                    "File Server"
+                ]
+            },
+            {
+                "question": "Which of the following are examples of desktop software? (choose two)",
+                "options": [
+                    "Music player",
+                    "File share",
+                    "Web browser",
+                    "Compiler",
+                    "Web server"
+                ],
+                "correct_answers": [
+                    "Music player",
+                    "Web browser"
+                ]
+            },
+            {
+                "question": "If you wanted to set up a blog, which software would be most helpful?",
+                "options": [
+                    "Samba",
+                    "MySQL",
+                    "Postfix",
+                    "Dovecot",
+                    "WordPress"
+                ],
+                "correct_answers": [
+                    "WordPress"
+                ]
+            },
+            {
+                "question": "Which of the following pieces of software deal with file sharing? (choose three)",
+                "options": [
+                    "X-Windows",
+                    "PostgreSQL",
+                    "Netatalk",
+                    "Samba",
+                    "NFS"
+                ],
+                "correct_answers": [
+                    "Netatalk",
+                    "Samba",
+                    "NFS"
+                ]
+            },
+            {
+                "question": "If you wanted to create and print an invoice, which software could you use?",
+                "options": [
+                    "Evolution",
+                    "LibreOffice",
+                    "GNOME",
+                    "Compiz",
+                    "Firefox"
+                ],
+                "correct_answers": [
+                    "LibreOffice"
+                ]
+            },
+            {
+                "question": "POP and IMAP are related to:",
+                "options": [
+                    "Serving web pages",
+                    "Reading and writing music",
+                    "Email",
+                    "Letting users log in to multiple servers with 1 set of credentials",
+                    "Sharing files"
+                ],
+                "correct_answers": [
+                    "Email"
+                ]
+            },
+            {
+                "question": "When a computer boots, it can get its network information through:",
+                "options": [
+                    "LDAP",
+                    "DNS",
+                    "DHCP",
+                    "SMTP",
+                    "X11"
+                ],
+                "correct_answers": [
+                    "DHCP"
+                ]
+            },
+            {
+                "question": "Which of the following are examples of text editors? (choose four)",
+                "options": [
+                    "nano",
+                    "Yum",
+                    "pico",
+                    "vim",
+                    "emacs"
+                ],
+                "correct_answers": [
+                    "nano",
+                    "pico",
+                    "vim",
+                    "emacs"
+                ]
+            },
+            {
+                "question": "A package manager: (choose two)",
+                "options": [
+                    "Downloads software from the Internet",
+                    "Keeps track of which files belong to which packages",
+                    "Can optionally repartition your disk to make room for Linux",
+                    "Performs a fresh install of Linux",
+                    "Emails you when software is out of date"
+                ],
+                "correct_answers": [
+                    "Downloads software from the Internet",
+                    "Keeps track of which files belong to which packages"
+                ]
+            },
+            {
+                "question": "An interpreted programming language: (choose two)",
+                "options": [
+                    "Takes fewer resources to run than a compiled language",
+                    "Is converted into machine specific instructions as the program runs",
+                    "Requires a linking step but no compilation step",
+                    "Tends to offer more features than compiled languages",
+                    "Requires a compilation step but no linking step"
+                ],
+                "correct_answers": [
+                    "Is converted into machine specific instructions as the program runs",
+                    "Tends to offer more features than compiled languages"
+                ]
+            },
+            {
+                "question": "Which of the following are true about compiled programming languages?",
+                "options": [
+                    "Ruby is a compiled language",
+                    "Compiled languages are great for system administration tasks like scripting",
+                    "C is a compiled language",
+                    "Perl is a compiled language",
+                    "A programmer is usually more productive when using a compiled language"
+                ],
+                "correct_answers": [
+                    "C is a compiled language"
+                ]
+            },
+            {
+                "question": "Which package manager is used in Fedora, a Red Hat derived system?",
+                "options": [
+                    "tar",
+                    "bash",
+                    "yum",
+                    "vim",
+                    "apt-get"
+                ],
+                "correct_answers": [
+                    "yum"
+                ]
+            },
+            {
+                "question": "The Linux shell: (choose three)",
+                "options": [
+                    "Is customizable",
+                    "Has a built-in text editor",
+                    "Allows you to launch programs",
+                    "Has a scripting language",
+                    "Is responsible for tracking the location of configuration files"
+                ],
+                "correct_answers": [
+                    "Is customizable",
+                    "Allows you to launch programs",
+                    "Has a scripting language"
+                ]
+            },
+            {
+                "question": "Which application would you use to edit and piece together sound files to make a podcast?",
+                "options": [
+                    "Audiolicious",
+                    "GIMP",
+                    "Thunderbird",
+                    "Bash",
+                    "Audacity"
+                ],
+                "correct_answers": [
+                    "Audacity"
+                ]
+            },
+            {
+                "question": "The two main families of Linux shells are: (choose two)",
+                "options": [
+                    "Emacs",
+                    "C Shell",
+                    "Bourne Shell",
+                    "Python Shell",
+                    "Korn shell"
+                ],
+                "correct_answers": [
+                    "C Shell",
+                    "Bourne Shell"
+                ]
+            },
+            {
+                "question": "Which server software would you use to create a company directory that you could search and authenticate against?",
+                "options": [
+                    "bind",
+                    "OpenLDAP",
+                    "Samba",
+                    "ISC DHCP",
+                    "Netatalk"
+                ],
+                "correct_answers": [
+                    "OpenLDAP"
+                ]
+            },
+            {
+                "question": "A Mail Transfer Agent's primary purpose is to:",
+                "options": [
+                    "Serve email to end clients",
+                    "Deliver mail between servers",
+                    "Manage the end user's inbox",
+                    "Filter out spam",
+                    "Act as a gateway between faxes and email"
+                ],
+                "correct_answers": [
+                    "Deliver mail between servers"
+                ]
+            },
+            {
+                "question": "Which of the following are examples of a web server? (choose two)",
+                "options": [
+                    "NFS",
+                    "postfix",
+                    "WordPress",
+                    "Nginx",
+                    "Apache"
+                ],
+                "correct_answers": [
+                    "Nginx",
+                    "Apache"
+                ]
+            },
+            {
+                "question": "If you wanted to let a Linux machine share files with Windows clients and servers, you would use:",
+                "options": [
+                    "Netatalk",
+                    "DNS",
+                    "Samba",
+                    "NFS",
+                    "bind"
+                ],
+                "correct_answers": [
+                    "Samba"
+                ]
+            },
+            {
+                "question": "Virtualization means:",
+                "options": [
+                    "A user can connect to a server over the network and use a virtual console",
+                    "Many users can share one hard drive",
+                    "A machine can swap memory to disk",
+                    "A single host can be split up into multiple guests",
+                    "Two users get different memory spaces on the same machine"
+                ],
+                "correct_answers": [
+                    "A single host can be split up into multiple guests"
+                ]
+            },
+            {
+                "question": "In virtualization, what are the host and guest? (choose two)",
+                "options": [
+                    "The terms can be used interchangeably",
+                    "A guest is a virtual machine",
+                    "A host is a virtual machine",
+                    "The host is the machine that runs the virtual machines",
+                    "The guest is the machine that runs the virtual machines"
+                ],
+                "correct_answers": [
+                    "A guest is a virtual machine",
+                    "The host is the machine that runs the virtual machines"
+                ]
+            },
+            {
+                "question": "Which of the following are traits of cloud computing? (choose two)",
+                "options": [
+                    "You don't have to worry about performance any more",
+                    "Resources can be accessed from anywhere over a network",
+                    "Scales IT resources so you pay for what you use",
+                    "You own the hardware but pay for it over time",
+                    "Only Linux works in cloud computing"
+                ],
+                "correct_answers": [
+                    "Resources can be accessed from anywhere over a network",
+                    "Scales IT resources so you pay for what you use"
+                ]
+            },
+            {
+                "question": "If you wanted to write a report that was to be printed, you would probably use:",
+                "options": [
+                    "A wiki",
+                    "Adobe Flash",
+                    "Firefox",
+                    "Chrome",
+                    "LibreOffice"
+                ],
+                "correct_answers": [
+                    "LibreOffice"
+                ]
+            },
+            {
+                "question": "To protect your privacy online, you can configure your computer to check for updates periodically. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which of the following is a tool that helps you anonymize your Internet browsing?",
+                "options": [
+                    "Web proxy",
+                    "Tor Browser",
+                    "Iptables",
+                    "AnonFirefox",
+                    "CookieCleaner"
+                ],
+                "correct_answers": [
+                    "Tor Browser"
+                ]
+            },
+            {
+                "question": "Cloud computing is:",
+                "options": [
+                    "Is made possible by faster internet speeds",
+                    "Is useful for both business and home users",
+                    "Allows users in different geographical regions to work together in real time",
+                    "Requires fewer resources because systems are shared among many users",
+                    "All are correct"
+                ],
+                "correct_answers": [
+                    "All are correct"
+                ]
+            },
+            {
+                "question": "The term for individual computers running multiple systems at the same time is:",
+                "options": [
+                    "MultiRun",
+                    "Cloud priority",
+                    "Distribution",
+                    "Virtualization",
+                    "Googleization"
+                ],
+                "correct_answers": [
+                    "Virtualization"
+                ]
+            },
+            {
+                "question": "Which of the following are traits of a multiuser operating system? (choose three)",
+                "options": [
+                    "Many users can log in simultaneously with a unique account",
+                    "Users can protect their information from other users",
+                    "Resources are shared between users",
+                    "Each user can only log in once per day",
+                    "An administrative user gets a dedicated CPU"
+                ],
+                "correct_answers": [
+                    "Many users can log in simultaneously with a unique account",
+                    "Users can protect their information from other users",
+                    "Resources are shared between users"
+                ]
+            },
+            {
+                "question": "If you want to store logins and passwords for different websites in a secure manner, you could use:",
+                "options": [
+                    "A text file in your home directory",
+                    "A LibreOffice document",
+                    "A sticky note on your monitor",
+                    "KeePassX",
+                    "In a spiral bound notebook in your file cabinet"
+                ],
+                "correct_answers": [
+                    "KeePassX"
+                ]
+            },
+            {
+                "question": "Two components that provide the ability to implement a firewall include: (choose two)",
+                "options": [
+                    "iptables",
+                    "gufw",
+                    "ifconfig",
+                    "Cerberus",
+                    "ipfw"
+                ],
+                "correct_answers": [
+                    "iptables",
+                    "gufw"
+                ]
+            },
+            {
+                "question": "What are tradeoffs of increasing the level of privacy you have in your web browser? (choose two)",
+                "options": [
+                    "You may have to explicitly permit some cookies to be saved",
+                    "Sites may not work properly",
+                    "You may get viruses",
+                    "Websites may load slower",
+                    "Images won't load properly"
+                ],
+                "correct_answers": [
+                    "You may have to explicitly permit some cookies to be saved",
+                    "Sites may not work properly"
+                ]
+            },
+            {
+                "question": "Social network 'like' buttons can track your activity across the Internet. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of the following are properties of a strong password? (choose three)",
+                "options": [
+                    "At least 10 characters long",
+                    "Based on easy to remember items like birthdays",
+                    "Includes symbols",
+                    "Long so that it can be reused on multiple sites",
+                    "A mix of upper and lower case"
+                ],
+                "correct_answers": [
+                    "At least 10 characters long",
+                    "Includes symbols",
+                    "A mix of upper and lower case"
+                ]
+            },
+            {
+                "question": "What can be done to prevent unauthorized users from accessing your computer remotely? (choose two)",
+                "options": [
+                    "Block third party cookies",
+                    "Turn on a firewall",
+                    "Block all cookies",
+                    "Use strong passwords on all user accounts",
+                    "Don't use wireless networks - only wired"
+                ],
+                "correct_answers": [
+                    "Turn on a firewall",
+                    "Use strong passwords on all user accounts"
+                ]
+            },
+            {
+                "question": "In graphical mode, you can get to a shell by running which applications? (choose two)",
+                "options": [
+                    "Terminal",
+                    "Gbash",
+                    "console",
+                    "Xterm",
+                    "Guiterm"
+                ],
+                "correct_answers": [
+                    "Terminal",
+                    "Xterm"
+                ]
+            },
+            {
+                "question": "Linux source code is available to:",
+                "options": [
+                    "Employees of the FBI, CIA and NSA with top secret clearance",
+                    "Anyone who has the knowledge needed to access it",
+                    "Only university researchers with a government grant",
+                    "Only employees of the Linux Foundation"
+                ],
+                "correct_answers": [
+                    "Anyone who has the knowledge needed to access it"
+                ]
+            },
+            {
+                "question": "Source code refers to:",
+                "options": [
+                    "The version of a program that the computer runs on the CPU",
+                    "The interface that software uses to talk to the kernel",
+                    "The license that dictates how you may use and share the software",
+                    "A human-readable version of computer software"
+                ],
+                "correct_answers": [
+                    "A human-readable version of computer software"
+                ]
+            },
+            {
+                "question": "Open source means: (choose two)",
+                "options": [
+                    "You can view the software’s source code",
+                    "You must share your changes",
+                    "You can modify the software’s source code",
+                    "You cannot charge anything for the software",
+                    "You must support the software you share"
+                ],
+                "correct_answers": [
+                    "You can view the software’s source code",
+                    "You can modify the software’s source code"
+                ]
+            },
+            {
+                "question": "A license where you don’t have access to the source code is called:",
+                "options": [
+                    "Impaired source",
+                    "Closed source",
+                    "Open source",
+                    "Sourceless"
+                ],
+                "correct_answers": [
+                    "Closed source"
+                ]
+            },
+            {
+                "question": "Open source licenses differ, but generally agree that: (choose two)",
+                "options": [
+                    "You are not allowed to sell the software",
+                    "You must redistribute your changes",
+                    "You should be able modify the software as you wish",
+                    "You should have access to the source code of software"
+                ],
+                "correct_answers": [
+                    "You should be able modify the software as you wish",
+                    "You should have access to the source code of software"
+                ]
+            },
+            {
+                "question": "Richard Stallman is associated with:",
+                "options": [
+                    "BSD Unix",
+                    "Microsoft",
+                    "The Free Software Foundation",
+                    "The Apache foundation",
+                    "The Open Source Initiative"
+                ],
+                "correct_answers": [
+                    "The Free Software Foundation"
+                ]
+            },
+            {
+                "question": "A copyleft provision in a software license means:",
+                "options": [
+                    "You may not link against third party closed source software",
+                    "If you redistribute the software, you must distribute the source to any changes you make",
+                    "You must provide free copies of the software if you use it",
+                    "You must provide support for your modifications",
+                    "You give up your copyright to the software"
+                ],
+                "correct_answers": [
+                    "If you redistribute the software, you must distribute the source to any changes you make"
+                ]
+            },
+            {
+                "question": "The largest difference between the GPLv2 and BSD licenses is:",
+                "options": [
+                    "Nothing, they are virtually identical",
+                    "BSD has no copyleft provision",
+                    "GPLv2 requires assigning copyright to the FSF",
+                    "GPLv2 is not approved by the OSI",
+                    "Only BSD allows commercial use"
+                ],
+                "correct_answers": [
+                    "BSD has no copyleft provision"
+                ]
+            },
+            {
+                "question": "The Free Software Foundation believes that: (choose two)",
+                "options": [
+                    "Software should be free to modify",
+                    "Software should be free to share",
+                    "Software should not have copyright",
+                    "People should write software with no expectation of making money",
+                    "No money should ever change hands"
+                ],
+                "correct_answers": [
+                    "Software should be free to modify",
+                    "Software should be free to share"
+                ]
+            },
+            {
+                "question": "Which of the following licenses was made by the FSF?",
+                "options": [
+                    "Creative Commons",
+                    "GPLv3",
+                    "Apache",
+                    "BSD",
+                    "MIT"
+                ],
+                "correct_answers": [
+                    "GPLv3"
+                ]
+            },
+            {
+                "question": "A permissive free software license: (choose two)",
+                "options": [
+                    "Means you can use the software for anything you want",
+                    "Does not allow the software to be locked to certain hardware",
+                    "Places the software in the public domain",
+                    "Places no restrictions on sharing modifications",
+                    "Requires you share software changes but not binaries"
+                ],
+                "correct_answers": [
+                    "Means you can use the software for anything you want",
+                    "Places no restrictions on sharing modifications"
+                ]
+            },
+            {
+                "question": "Linux is distributed under which license?",
+                "options": [
+                    "GPLv3",
+                    "BSD",
+                    "Linux Foundation",
+                    "MIT",
+                    "GPLv2"
+                ],
+                "correct_answers": [
+                    "GPLv2"
+                ]
+            },
+            {
+                "question": "Who founded the Open Source Initiative? (choose two)",
+                "options": [
+                    "University of California at Berkeley",
+                    "Richard Stallman",
+                    "Bruce Perens",
+                    "Linus Torvalds",
+                    "Eric Raymond"
+                ],
+                "correct_answers": [
+                    "Bruce Perens",
+                    "Eric Raymond"
+                ]
+            },
+            {
+                "question": "A generic term for Open Source and Free Software is:",
+                "options": [
+                    "SLOFF",
+                    "OS/FS",
+                    "FLOSS",
+                    "GPL",
+                    "Libre Software"
+                ],
+                "correct_answers": [
+                    "FLOSS"
+                ]
+            },
+            {
+                "question": "Which are examples of permissive software licenses? (choose two)",
+                "options": [
+                    "BSD",
+                    "LGPLv3",
+                    "GPLv3",
+                    "GPLv2",
+                    "MIT"
+                ],
+                "correct_answers": [
+                    "BSD",
+                    "MIT"
+                ]
+            },
+            {
+                "question": "What does it mean when a work is placed in the public domain?",
+                "options": [
+                    "The work was done by a government agency",
+                    "You may not use the work for commercial purposes",
+                    "The author has died",
+                    "The author has relinquished the copyright on the work",
+                    "You must redistribute changes to the software"
+                ],
+                "correct_answers": [
+                    "The author has relinquished the copyright on the work"
+                ]
+            },
+            {
+                "question": "Creative Commons licenses allow you to: (choose three)",
+                "options": [
+                    "Specify whether or not people may distribute changes",
+                    "Receive royalties on the use of the work",
+                    "Allow or disallow commercial use",
+                    "Specify whether or not changes must be shared",
+                    "Get a veto on where the work is used"
+                ],
+                "correct_answers": [
+                    "Specify whether or not people may distribute changes",
+                    "Allow or disallow commercial use",
+                    "Specify whether or not changes must be shared"
+                ]
+            },
+            {
+                "question": "If a podcast is licensed under the CC BY-ND license, you may: (choose two)",
+                "options": [
+                    "Use an interview or song from it for your own podcast",
+                    "Post it to your website",
+                    "Share it as long as you give credit to the author",
+                    "Sell it as part of a compilation",
+                    "Add ads to it and post it to your website."
+                ],
+                "correct_answers": [
+                    "Post it to your website",
+                    "Share it as long as you give credit to the author"
+                ]
+            },
+            {
+                "question": "How can you make money from open source software? (choose three)",
+                "options": [
+                    "Unlock premium features for people that pay",
+                    "Sell hardware that’s built to work with the software",
+                    "Take payments for fixing bugs",
+                    "Charge a yearly fee for the right to use the software",
+                    "Provide paid consulting services for users"
+                ],
+                "correct_answers": [
+                    "Sell hardware that’s built to work with the software",
+                    "Take payments for fixing bugs",
+                    "Provide paid consulting services for users"
+                ]
+            },
+            {
+                "question": "The difference between the GPL and LGPL licenses are:",
+                "options": [
+                    "LGPL applies to web services",
+                    "LGPL ensures that all variants of the original GPL program has the same freedom of use as the original",
+                    "LGPL allows you to distribute the software in binary-only form",
+                    "LGPL is shorter than GPL",
+                    "LGPL was made by the OSI while GPL was made by the FSF"
+                ],
+                "correct_answers": [
+                    "LGPL allows you to distribute the software in binary-only form"
+                ]
+            },
+            {
+                "question": "Permissive free software licenses: (choose three)",
+                "options": [
+                    "Can allow software to be used inside closed source software",
+                    "Include the GPLv2 and BSD",
+                    "Are not approved by the FSF",
+                    "Don’t have a copyleft provision",
+                    "Are not approved by the OSI"
+                ],
+                "correct_answers": [
+                    "Can allow software to be used inside closed source software",
+                    "Don’t have a copyleft provision",
+                    "Are not approved by the OSI"
+                ]
+            },
+            {
+                "question": "The Creative Commons version of Public Domain licensing is:",
+                "options": [
+                    "NoAttribution-ShareAlike (CC BY-SA)",
+                    "Attribution-NonCommercial (CC BY-NC)",
+                    "Attribution (CC BY)",
+                    "No Rights Reserved (CC0)",
+                    "Attribution-NonCommercial-ShareAlike (CC BY-NC-SA)"
+                ],
+                "correct_answers": [
+                    "No Rights Reserved (CC0)"
+                ]
+            },
+            {
+                "question": "Your company makes a hardware firewall that runs a custom Linux kernel. What are your obligations under GPLv2?",
+                "options": [
+                    "You must ensure your custom kernel runs on a regular Intel machine",
+                    "There are no requirements",
+                    "You must make the source to your kernel available",
+                    "You must make your hardware designs available",
+                    "You must make the source to your custom web interface available"
+                ],
+                "correct_answers": [
+                    "You must make the source to your kernel available"
+                ]
+            },
+            {
+                "question": "Which environment variable contains a list of directories that is searched for commands to execute?",
+                "options": [
+                    "PATH",
+                    "PS1",
+                    "PS2",
+                    "EXEC"
+                ],
+                "correct_answers": [
+                    "PATH"
+                ]
+            },
+            {
+                "question": "Select the command that can report the location of a command:",
+                "options": [
+                    "what",
+                    "which",
+                    "where"
+                ],
+                "correct_answers": [
+                    "which"
+                ]
+            },
+            {
+                "question": "A pair of single quotes ( ‘ ) will prevent the shell from interpreting any metacharacter. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "A pair of double quotes (” ) will prevent the shell from interpreting any metacharacter. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Using a pair of back quotes ( ` ) will cause a shell to execute the back-quoted text as a command and substitute the output back into the original command. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The semicolon (;) can be used to separate multiple commands to be executed in order. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The double ampersand characters (&& ) are used to separate commands to be executed conditionally, where if the command to the left of the ampersands fails, then the command to the right of the ampersands will be executed. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "To be able to output messages to the screen, use the _______ command:",
+                "options": [
+                    "echo",
+                    "print",
+                    "display",
+                    "type"
+                ],
+                "correct_answers": [
+                    "echo"
+                ]
+            },
+            {
+                "question": "The _______ command will print a list of the commands that you’ve previously executed.",
+                "options": [
+                    "list",
+                    "eval",
+                    "history",
+                    "exec"
+                ],
+                "correct_answers": [
+                    "history"
+                ]
+            },
+            {
+                "question": "To execute the same command as previously executed five commands ago, you would type:",
+                "options": [
+                    "@-5",
+                    "!5",
+                    "!-5",
+                    "&5"
+                ],
+                "correct_answers": [
+                    "!-5"
+                ]
+            },
+            {
+                "question": "The shell program interprets the commands you type into the terminal into instructions that the Linux operating system can execute. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The acronym CLI stands for:",
+                "options": [
+                    "Computer Line Interface",
+                    "Command Line Interpreter",
+                    "Command Line Interface",
+                    "Computer Link Interpreter"
+                ],
+                "correct_answers": [
+                    "Command Line Interface"
+                ]
+            },
+            {
+                "question": "What one character treats the character that follows it as if it was surrounded by single quotes?",
+                "options": [
+                    "/",
+                    "#",
+                    "%",
+                    "\\"
+                ],
+                "correct_answers": [
+                    "\\"
+                ]
+            },
+            {
+                "question": "The echo command:",
+                "options": [
+                    "Copies variables from one to another",
+                    "Tests a variable for duplication",
+                    "Is used for variable assignment",
+                    "Is used to output text to the console",
+                    "Duplicates the input stream to the output stream"
+                ],
+                "correct_answers": [
+                    "Is used to output text to the console"
+                ]
+            },
+            {
+                "question": "The most common shell used for Linux distributions is the ________ shell.",
+                "options": [
+                    "Fish",
+                    "Bash",
+                    "Tsch",
+                    "Zsh"
+                ],
+                "correct_answers": [
+                    "Bash"
+                ]
+            },
+            {
+                "question": "HOME is an example of _________.",
+                "options": [
+                    "An environment variable",
+                    "A path variable",
+                    "A local variable",
+                    "An internal command",
+                    "An alias"
+                ],
+                "correct_answers": [
+                    "An environment variable"
+                ]
+            },
+            {
+                "question": "What is the standard option to provide a command line program to view its documentation?",
+                "options": [
+                    "-h",
+                    "–info",
+                    "–help",
+                    "–doc"
+                ],
+                "correct_answers": [
+                    "–help"
+                ]
+            },
+            {
+                "question": "The command man -k is the same as the command apropos. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The whatis command is the same as man -w. True or False?",
+                "options": [
+                    "False",
+                    "True"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "The directory where additional documentation for software packages most likely can be found is:",
+                "options": [
+                    "/usr/software/doc",
+                    "/var/lib/doc",
+                    "/usr/share/doc",
+                    "/var/share/doc"
+                ],
+                "correct_answers": [
+                    "/usr/share/doc"
+                ]
+            },
+            {
+                "question": "Which two pager commands are used by the man command to control movement within the document? (choose two)",
+                "options": [
+                    "grep",
+                    "less",
+                    "page",
+                    "more"
+                ],
+                "correct_answers": [
+                    "less",
+                    "more"
+                ]
+            },
+            {
+                "question": "Commands typically executed by a user are covered in what section of the manual?",
+                "options": [
+                    "5",
+                    "3",
+                    "2",
+                    "1"
+                ],
+                "correct_answers": [
+                    "1"
+                ]
+            },
+            {
+                "question": "To search the man page sections for the keyword example, which of the following command lines could you execute? (choose two)",
+                "options": [
+                    "man -k example",
+                    "apropos example",
+                    "man -f example",
+                    "whatis example"
+                ],
+                "correct_answers": [
+                    "man -k example",
+                    "apropos example"
+                ]
+            },
+            {
+                "question": "The statement that describes the difference between a man page and an info page is:",
+                "options": [
+                    "The man page is like a guide; the info page is a more concise reference.",
+                    "The info page is like a guide; a man page is a more concise reference.",
+                    "The man page is a long detailed reference; the info page is very terse.",
+                    "There is very little difference between them."
+                ],
+                "correct_answers": [
+                    "The info page is like a guide; a man page is a more concise reference."
+                ]
+            },
+            {
+                "question": "If you are reading the synopsis of a command from a man page, then items in square brackets are:",
+                "options": [
+                    "Required arguments",
+                    "Comments",
+                    "Optional",
+                    "Required options"
+                ],
+                "correct_answers": [
+                    "Optional"
+                ]
+            },
+            {
+                "question": "The following sections commonly appear on a man page: (choose three)",
+                "options": [
+                    "NAME",
+                    "LICENSE",
+                    "DESCRIPTION",
+                    "SYNOPSIS"
+                ],
+                "correct_answers": [
+                    "NAME",
+                    "DESCRIPTION",
+                    "SYNOPSIS"
+                ]
+            },
+            {
+                "question": "Section 5 of the manual pages covers:",
+                "options": [
+                    "System administration commands",
+                    "Games",
+                    "User commands",
+                    "File Formats"
+                ],
+                "correct_answers": [
+                    "File Formats"
+                ]
+            },
+            {
+                "question": "To start searching a man page, the first key you press is:",
+                "options": [
+                    "f",
+                    "/",
+                    "s",
+                    "!"
+                ],
+                "correct_answers": [
+                    "/"
+                ]
+            },
+            {
+                "question": "In order to exit viewing a man page, press:",
+                "options": [
+                    "q",
+                    "z",
+                    "x",
+                    "y"
+                ],
+                "correct_answers": [
+                    "q"
+                ]
+            },
+            {
+                "question": "To get help on using the info command, execute: (choose two)",
+                "options": [
+                    "man info",
+                    "info -q",
+                    "info info",
+                    "help info"
+                ],
+                "correct_answers": [
+                    "man info",
+                    "info info"
+                ]
+            },
+            {
+                "question": "To get help while using the info command, press:",
+                "options": [
+                    "g",
+                    "A",
+                    "Shift+H",
+                    "Shift+z"
+                ],
+                "correct_answers": [
+                    "Shift+H"
+                ]
+            },
+            {
+                "question": "To exit the info page, press:",
+                "options": [
+                    "Q",
+                    "x",
+                    "z",
+                    "x"
+                ],
+                "correct_answers": [
+                    "Q"
+                ]
+            },
+            {
+                "question": "When interpreting the SYNOPSIS of a command found on a man page, the “|” means:",
+                "options": [
+                    "The items it separates can be used together",
+                    "The items it separates cannot be used together"
+                ],
+                "correct_answers": [
+                    "The items it separates cannot be used together"
+                ]
+            },
+            {
+                "question": "The _____ command is normally executed daily to update the database of all files that are on the system.",
+                "options": [
+                    "find",
+                    "locate",
+                    "search",
+                    "updatedb"
+                ],
+                "correct_answers": [
+                    "updatedb"
+                ]
+            },
+            {
+                "question": "The _____ command is normally executed to search for a command or man page.",
+                "options": [
+                    "updatedb",
+                    "whereis",
+                    "find",
+                    "man -k"
+                ],
+                "correct_answers": [
+                    "whereis"
+                ]
+            },
+            {
+                "question": "The _____ command can be used to find any file, not just commands or man pages.",
+                "options": [
+                    "apropos",
+                    "whereis",
+                    "whatis",
+                    "locate"
+                ],
+                "correct_answers": [
+                    "locate"
+                ]
+            },
+            {
+                "question": "The info command merges all available documentation into a single “book”. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Section 9 of man pages relates to what?",
+                "options": [
+                    "Library Calls",
+                    "Games",
+                    "Kernel Routines",
+                    "System Calls",
+                    "Miscellaneous"
+                ],
+                "correct_answers": [
+                    "Kernel Routines"
+                ]
+            },
+            {
+                "question": "The man command searches each of the sections in order until it finds a match. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The whatis command will only return the first result for which section a man page is stored in. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Hidden files are files that begin with what character?",
+                "options": [
+                    "A plus (+)",
+                    "An asterisk (*)",
+                    "A dash (-)",
+                    "A period (.)"
+                ],
+                "correct_answers": [
+                    "A period (.)"
+                ]
+            },
+            {
+                "question": "What option for the ls command will display all files, including hidden files?",
+                "options": [
+                    "-a",
+                    "-L",
+                    "-H",
+                    "-w"
+                ],
+                "correct_answers": [
+                    "-a"
+                ]
+            },
+            {
+                "question": "The top-level directory on a Linux system is represented as:",
+                "options": [
+                    "/home",
+                    "C:",
+                    "/root",
+                    "/"
+                ],
+                "correct_answers": [
+                    "/"
+                ]
+            },
+            {
+                "question": "Is the following path absolute or relative? /etc/ppp",
+                "options": [
+                    "Absolute",
+                    "Relative"
+                ],
+                "correct_answers": [
+                    "Absolute"
+                ]
+            },
+            {
+                "question": "Is the following path absolute or relative? sysadmin/Documents",
+                "options": [
+                    "Relative",
+                    "Absolute"
+                ],
+                "correct_answers": [
+                    "Relative"
+                ]
+            },
+            {
+                "question": "Is the following path absolute or relative? ../../home/sysadmin",
+                "options": [
+                    "Absolute",
+                    "Relative"
+                ],
+                "correct_answers": [
+                    "Relative"
+                ]
+            },
+            {
+                "question": "The tilde (~) is used to represent:",
+                "options": [
+                    "Any two single characters",
+                    "Nothing; it has no special meaning",
+                    "The directory above the current working directory",
+                    "A user’s home directory"
+                ],
+                "correct_answers": [
+                    "A user’s home directory"
+                ]
+            },
+            {
+                "question": "Which of the following commands can be used to access the home directory of the user “bob” while logged in as root? (choose two)",
+                "options": [
+                    "cd &&",
+                    "cd /home/bob",
+                    "cd ~bob",
+                    "~bob"
+                ],
+                "correct_answers": [
+                    "cd /home/bob",
+                    "cd ~bob"
+                ]
+            },
+            {
+                "question": "The double dot (..) can be used with the cd command to represent:",
+                "options": [
+                    "A user’s home directory.",
+                    "Any two single characters",
+                    "Nothing; it has no special meaning.",
+                    "The directory above the current working directory"
+                ],
+                "correct_answers": [
+                    "The directory above the current working directory"
+                ]
+            },
+            {
+                "question": "The cd command by itself will take you to what directory?",
+                "options": [
+                    "None; it is not a valid command",
+                    "The system root directory",
+                    "Your home directory",
+                    "The directory above the current working directory"
+                ],
+                "correct_answers": [
+                    "Your home directory"
+                ]
+            },
+            {
+                "question": "What command will allow you to change your current working directory?",
+                "options": [
+                    "list",
+                    "chdir",
+                    "ls",
+                    "cd"
+                ],
+                "correct_answers": [
+                    "cd"
+                ]
+            },
+            {
+                "question": "The double dot (..) can be used to represent the directory…",
+                "options": [
+                    "…below the current directory.",
+                    "…above the current directory.",
+                    "…with any two single numbers.",
+                    "…above the current directory only when using the cd command."
+                ],
+                "correct_answers": [
+                    "…above the current directory."
+                ]
+            },
+            {
+                "question": "The ls command without options or arguments…",
+                "options": [
+                    "…prompts for a directory to list.",
+                    "…generates an error as this command requires arguments.",
+                    "…lists the contents of a user’s home directory.",
+                    "…lists the contents of the current directory."
+                ],
+                "correct_answers": [
+                    "…lists the contents of the current directory."
+                ]
+            },
+            {
+                "question": "The first character in a long listing (ls -l) indicates:",
+                "options": [
+                    "The permissions",
+                    "The owner",
+                    "If something is a file, directory, or symbolic link",
+                    "The size"
+                ],
+                "correct_answers": [
+                    "If something is a file, directory, or symbolic link"
+                ]
+            },
+            {
+                "question": "Which option for the ls command, when used in conjunction with the -l option, will display human-readable file sizes?",
+                "options": [
+                    "-S",
+                    "-H",
+                    "-h",
+                    "-M"
+                ],
+                "correct_answers": [
+                    "-h"
+                ]
+            },
+            {
+                "question": "Which of the following commands will prevent any aliased options to the ls command?",
+                "options": [
+                    "%ls",
+                    "/ls",
+                    "`ls",
+                    "\\ls"
+                ],
+                "correct_answers": [
+                    "\\ls"
+                ]
+            },
+            {
+                "question": "The ls command color codes results by default. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The command ls -S will sort files:",
+                "options": [
+                    "By modification date, newest to oldest",
+                    "By size, largest to smallest",
+                    "By number of symlinks, largest to smallest",
+                    "By size, smallest to largest"
+                ],
+                "correct_answers": [
+                    "By size, largest to smallest"
+                ]
+            },
+            {
+                "question": "When using the cp command, you must provide both a source and a destination. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which option(s) can be used to prevent cp from overwriting an existing file? (choose two)",
+                "options": [
+                    "-z",
+                    "-n",
+                    "-N",
+                    "-i"
+                ],
+                "correct_answers": [
+                    "-n",
+                    "-i"
+                ]
+            },
+            {
+                "question": "The command rm -r will…",
+                "options": [
+                    "remove a directory along with any files or subdirectories.",
+                    "generate an error; -r isn’t a valid option.",
+                    "remove only empty directories.",
+                    "prompt for each confirmation before deleting each file in a directory."
+                ],
+                "correct_answers": [
+                    "remove a directory along with any files or subdirectories."
+                ]
+            },
+            {
+                "question": "Which option can be used with the rm command to prompt before deleting?",
+                "options": [
+                    "A",
+                    "-P",
+                    "l",
+                    "-i"
+                ],
+                "correct_answers": [
+                    "-i"
+                ]
+            },
+            {
+                "question": "The rm command can delete multiple files at once. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of the following commands can be used to rename a file?",
+                "options": [
+                    "cp",
+                    "rm",
+                    "mv",
+                    "name"
+                ],
+                "correct_answers": [
+                    "mv"
+                ]
+            },
+            {
+                "question": "The touch command can be used to: (choose two)",
+                "options": [
+                    "Update the timestamp of existing files",
+                    "Change ownership of a file",
+                    "Create new files",
+                    "Change a file’s name"
+                ],
+                "correct_answers": [
+                    "Update the timestamp of existing files",
+                    "Create new files"
+                ]
+            },
+            {
+                "question": "Which of the following are glob characters? (choose three)",
+                "options": [
+                    "The square brackets “[” and “]”",
+                    "The question mark “?”",
+                    "The dash character “-“",
+                    "The asterisk “*”"
+                ],
+                "correct_answers": [
+                    "The square brackets “[” and “]”",
+                    "The question mark “?”",
+                    "The asterisk “*”"
+                ]
+            },
+            {
+                "question": "The main purpose of using glob characters is to be able to provide a list of filenames to a command. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The asterisk character is used to represent zero or more of any character in a filename. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of these commands will return /etc/gai.conf /etc/pam.conf /etc/ucf.conf? (choose two)",
+                "options": [
+                    "ls /etc/???.????",
+                    "echo /etc/???.*f",
+                    "echo /etc/*?.*o?",
+                    "ls /etc/p???.**"
+                ],
+                "correct_answers": [
+                    "ls /etc/???.????",
+                    "echo /etc/???.*f"
+                ]
+            },
+            {
+                "question": "Brackets cannot be used to a represent a range of characters. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which command would list files that do not begin with a “T” or a “W”?",
+                "options": [
+                    "echo /etc/*[TW!]",
+                    "echo /etc/!TW",
+                    "echo /etc/[!TW]*",
+                    "echo /etc/[*TW]!"
+                ],
+                "correct_answers": [
+                    "echo /etc/[!TW]*"
+                ]
+            },
+            {
+                "question": "Compression of a file works by:",
+                "options": [
+                    "Eliminating gaps within the file",
+                    "Consolidating multiple files into one",
+                    "Removing redundant information",
+                    "Storing most of the data on removable media and just leaving a pointer",
+                    "Removing the high order bit from each byte"
+                ],
+                "correct_answers": [
+                    "Removing redundant information"
+                ]
+            },
+            {
+                "question": "In general, for which of the following would you want to use lossless compression?",
+                "options": [
+                    "An mp3 audio file",
+                    "An encrypted email",
+                    "A JPEG image",
+                    "A log file",
+                    "A movie"
+                ],
+                "correct_answers": [
+                    "An encrypted email"
+                ]
+            },
+            {
+                "question": "Lossy compression: (choose three)",
+                "options": [
+                    "Usually results better compression than lossless",
+                    "Is often used with images",
+                    "Is often used with documents",
+                    "Decompresses to an identical version as the original",
+                    "Sacrifices some quality"
+                ],
+                "correct_answers": [
+                    "Usually results better compression than lossless",
+                    "Is often used with images",
+                    "Sacrifices some quality"
+                ]
+            },
+            {
+                "question": "You type gzip myfile.tar. What happens? (choose two)",
+                "options": [
+                    "myfile.tar is unarchived into the current directory",
+                    "An error; you forgot to pass the name of the output file",
+                    "myfile.tar.gz holds a compressed version of myfile.tar",
+                    "An error; you forgot to specify the file with -f",
+                    "myfile.tar is removed"
+                ],
+                "correct_answers": [
+                    "myfile.tar.gz holds a compressed version of myfile.tar",
+                    "myfile.tar is removed"
+                ]
+            },
+            {
+                "question": "How would you obtain output similar to the following? compressed uncompressed ratio uncompressed_name 278168 1016950 72.6% tags",
+                "options": [
+                    "gzip –l tags",
+                    "gunzip –t tags",
+                    "file tags"
+                ],
+                "correct_answers": [
+                    "gzip –l tags"
+                ]
+            },
+            {
+                "question": "Which command would you use to archive the Documents directory and compress it with bzip2 compression?",
+                "options": [
+                    "tar –fzc Documents documents.tbz",
+                    "tar –cf Documents documents.tbz",
+                    "tar –cjf Documents",
+                    "tar –cjf documents.tbz Documents",
+                    "tar –czf documents.tbz"
+                ],
+                "correct_answers": [
+                    "tar –cjf documents.tbz Documents"
+                ]
+            },
+            {
+                "question": "Which flag would you pass to tar in order to have it make a new archive?",
+                "options": [
+                    "-t",
+                    "-c",
+                    "-n",
+                    "-x",
+                    "-j"
+                ],
+                "correct_answers": [
+                    "-c"
+                ]
+            },
+            {
+                "question": "Which command will show what is inside the compressed tarball with a name of foo.tar.gz?",
+                "options": [
+                    "tar –tjf foo.tar.gz",
+                    "tar –lf foo.tar.gz",
+                    "tar –tf foo.tar.gz",
+                    "tar –xf foo.tar.gz",
+                    "tar –tzf foo.tar.gz"
+                ],
+                "correct_answers": [
+                    "tar –tzf foo.tar.gz"
+                ]
+            },
+            {
+                "question": "In the command tar -cvjf foo.tbz a b c, what are a, b, and c?",
+                "options": [
+                    "Nothing; -cvjf only expects one parameter",
+                    "File names to be added to the archive",
+                    "a is the directory that will be prepended to files; b and c are files inside it",
+                    "Matching operators; anything starting with a, b, or c will be added",
+                    "Extra flags passed to tar"
+                ],
+                "correct_answers": [
+                    "File names to be added to the archive"
+                ]
+            },
+            {
+                "question": "Given the command tar –cvjf homedirs.tbz /home, which of the following are true? (choose two)",
+                "options": [
+                    "Only files starting with /home will be extracted from the archive",
+                    "The command will print out each filename as it is processed",
+                    "The /home directory will be restored with the contents of homedirs.tbz",
+                    "Files that are present in the archive might overwrite files in /home",
+                    "The output file will be compressed"
+                ],
+                "correct_answers": [
+                    "The command will print out each filename as it is processed",
+                    "The output file will be compressed"
+                ]
+            },
+            {
+                "question": "You archived your users’ directories into a file called backup.tar.gz. You then view the archive and see the filenames follow this convention: home/username/somefile How will you extract just the files for the user called fred?",
+                "options": [
+                    "tar –xzf backup.tar.gz home/fred/",
+                    "tar –tjf backup.tar.gz /home/fred",
+                    "tar –xjf backup.tar.gz home/fred/",
+                    "tar –xzf backup.tar.gz fred",
+                    "tar –tzf /home/fred < backup.tar.gz"
+                ],
+                "correct_answers": [
+                    "tar –xzf backup.tar.gz home/fred/"
+                ]
+            },
+            {
+                "question": "Which of the following commands will create a zipfile with the contents of your Documents directory?",
+                "options": [
+                    "zip –f mydocs.zip Documents",
+                    "zip -r mydocs.zip Documents",
+                    "zip –c mydocs.zip Documents",
+                    "zip mydocs.zip Documents",
+                    "zip -cf mydocs.zip Documents"
+                ],
+                "correct_answers": [
+                    "zip -r mydocs.zip Documents"
+                ]
+            },
+            {
+                "question": "Given a file called documents.zip, how can you see what’s in it without extracting the files?",
+                "options": [
+                    "zip -lf documents.zip",
+                    "unzip -l documents.zip",
+                    "unzip –list documents.zip",
+                    "zip -l documents.zip",
+                    "showzip documents.zip"
+                ],
+                "correct_answers": [
+                    "unzip -l documents.zip"
+                ]
+            },
+            {
+                "question": "Given a file called documents.zip, how can you extract just the files under ProjectX?",
+                "options": [
+                    "unzip documents.zip ProjectX/*",
+                    "unzip documents.zip | grep ProjectX",
+                    "unzip documents.zip ProjectX",
+                    "zip -x documents.zip ProjectX",
+                    "unzip -t documents.zip ProjectX"
+                ],
+                "correct_answers": [
+                    "unzip documents.zip ProjectX/*"
+                ]
+            },
+            {
+                "question": "You try to compress a file that is already compressed. Which of the following statements is true?",
+                "options": [
+                    "The file will not be compressed any further than it already was",
+                    "The compression algorithm needs to be set to the “currently compressed” mode for it to be compressed further",
+                    "The file changed while you were compressing it",
+                    "The file will be deleted",
+                    "The file will actually be uncompressed"
+                ],
+                "correct_answers": [
+                    "The file will not be compressed any further than it already was"
+                ]
+            },
+            {
+                "question": "Which of the following commands can be used to compress a file? (choose three)",
+                "options": [
+                    "bunzip2",
+                    "cat",
+                    "zip",
+                    "bzip2",
+                    "gzip"
+                ],
+                "correct_answers": [
+                    "zip",
+                    "bzip2",
+                    "gzip"
+                ]
+            },
+            {
+                "question": "The three main modes of tar are: (choose three)",
+                "options": [
+                    "List",
+                    "Create",
+                    "Compress",
+                    "Copy",
+                    "Extract"
+                ],
+                "correct_answers": [
+                    "List",
+                    "Create",
+                    "Extract"
+                ]
+            },
+            {
+                "question": "In the command tar -czf foo.tar.gz bar, what is the purpose of the f flag?",
+                "options": [
+                    "Tells tar to copy only files, and not directories",
+                    "Tells tar to read from the file that follows the flag",
+                    "Tells tar to write to the file that follows the flag",
+                    "Tells tar to print the name of each file as it is processed",
+                    "Specifies extra compression is to be used"
+                ],
+                "correct_answers": [
+                    "Tells tar to write to the file that follows the flag"
+                ]
+            },
+            {
+                "question": "Which two commands do the same thing? (choose two)",
+                "options": [
+                    "tar -czf foo.tar.gz foo",
+                    "tar -tzf foo.tar.gz",
+                    "tar -c foo | gzip > foo.tar.gz",
+                    "tar -x foo | gzip",
+                    "tar -xzf foo.tar.gz"
+                ],
+                "correct_answers": [
+                    "tar -czf foo.tar.gz foo",
+                    "tar -c foo | gzip > foo.tar.gz"
+                ]
+            },
+            {
+                "question": "Which two programs use the Lempel-Ziv-Markov chain algorithm? (choose two)",
+                "options": [
+                    "xz",
+                    "lossless",
+                    "lossy",
+                    "bzip",
+                    "gzip"
+                ],
+                "correct_answers": [
+                    "xz",
+                    "bzip"
+                ]
+            },
+            {
+                "question": "By default, the zip command replaces uncompressed files with compressed files. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Error messages generated by commands are sent where by default?",
+                "options": [
+                    "STDERR",
+                    "STDIN",
+                    "Log files",
+                    "STDOUT"
+                ],
+                "correct_answers": [
+                    "STDERR"
+                ]
+            },
+            {
+                "question": "A successful command may, or may not print output to STDOUT. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of the following commands will direct error messages to the file, error.log?",
+                "options": [
+                    "ls /root >> error.log",
+                    "ls /root > error.log",
+                    "ls /root 2> error.log",
+                    "ls /root $> error.log"
+                ],
+                "correct_answers": [
+                    "ls /root 2> error.log"
+                ]
+            },
+            {
+                "question": "A pipe allows you to…",
+                "options": [
+                    "…send the same input to multiple commands.",
+                    "…type multiple commands at one prompt.",
+                    "…send the output of one command to another.",
+                    "…send the output of a command to a file."
+                ],
+                "correct_answers": [
+                    "…send the output of one command to another."
+                ]
+            },
+            {
+                "question": "Channel 2 is:",
+                "options": [
+                    "STDOUT",
+                    "STDALL",
+                    "STDERR",
+                    "STDIN"
+                ],
+                "correct_answers": [
+                    "STDERR"
+                ]
+            },
+            {
+                "question": "Which of the following commands will append its output to output.file?",
+                "options": [
+                    "echo Testing >> output.file",
+                    "echo Testing > output.file",
+                    "output.file < echo Testing",
+                    "echo Testing -> output.file"
+                ],
+                "correct_answers": [
+                    "echo Testing >> output.file"
+                ]
+            },
+            {
+                "question": "Which command(s) can be used to sort the lines of list.file alphabetically and display it on the screen? (choose two)",
+                "options": [
+                    "sort < list.file",
+                    "cat list.file >> sort",
+                    "echo list.file > sort",
+                    "cat list.file | sort"
+                ],
+                "correct_answers": [
+                    "sort < list.file",
+                    "cat list.file | sort"
+                ]
+            },
+            {
+                "question": "Which option of the head command will display only the first five lines of a file?",
+                "options": [
+                    "No option needed; head displays only five lines by default.",
+                    "-n",
+                    "-l 5",
+                    "-n 5"
+                ],
+                "correct_answers": [
+                    "-n 5"
+                ]
+            },
+            {
+                "question": "The grep command…",
+                "options": [
+                    "…will display all the lines that begin with the specified Regular Expression.",
+                    "…will display all the lines in a file containing the specified Regular Expression.",
+                    "…will display the line numbers in a file that contain a specified Regular Expression.",
+                    "…is not case sensitive."
+                ],
+                "correct_answers": [
+                    "…will display all the lines in a file containing the specified Regular Expression."
+                ]
+            },
+            {
+                "question": "The grep command can be used with glob characters. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of the following commands will display only lines that begin with start?",
+                "options": [
+                    "grep \\start file.txt",
+                    "grep $start file.txt",
+                    "grep *start file.txt",
+                    "grep ^start file.txt"
+                ],
+                "correct_answers": [
+                    "grep ^start file.txt"
+                ]
+            },
+            {
+                "question": "Which of the following commands will display only lines that begin with test?",
+                "options": [
+                    "grep $test* file.txt",
+                    "grep *test file.txt",
+                    "grep &test file.txt",
+                    "grep ^test file.txt"
+                ],
+                "correct_answers": [
+                    "grep ^test file.txt"
+                ]
+            },
+            {
+                "question": "Which of the following commands will display lines that contain either start or end?",
+                "options": [
+                    "egrep ‘start|end’ file.txt",
+                    "egrep (start|end) file.txt",
+                    "egrep start end file.txt",
+                    "egrep start&end file.txt"
+                ],
+                "correct_answers": [
+                    "egrep ‘start|end’ file.txt"
+                ]
+            },
+            {
+                "question": "Which of the following commands can be used to scroll through a text file? (choose two)",
+                "options": [
+                    "some",
+                    "more",
+                    "cat",
+                    "less"
+                ],
+                "correct_answers": [
+                    "more",
+                    "less"
+                ]
+            },
+            {
+                "question": "Which option for the cut command is used to specify a delimiter?",
+                "options": [
+                    "-D",
+                    "-f",
+                    "=",
+                    "-d"
+                ],
+                "correct_answers": [
+                    "-d"
+                ]
+            },
+            {
+                "question": "Which option for the cut command is used to specify the field?",
+                "options": [
+                    "-d",
+                    "#",
+                    "-D",
+                    "-f"
+                ],
+                "correct_answers": [
+                    "-f"
+                ]
+            },
+            {
+                "question": "Which option for the wc command will print the number of lines in a file?",
+                "options": [
+                    "-w",
+                    "-l",
+                    "-L",
+                    "-C"
+                ],
+                "correct_answers": [
+                    "-l"
+                ]
+            },
+            {
+                "question": "Which option for the wc command will print the total number of words in a file?",
+                "options": [
+                    "-l",
+                    "-C",
+                    "-L",
+                    "-w"
+                ],
+                "correct_answers": [
+                    "-w"
+                ]
+            },
+            {
+                "question": "Which command can be used to print line numbers?",
+                "options": [
+                    "num",
+                    "nl",
+                    "ln",
+                    "sort"
+                ],
+                "correct_answers": [
+                    "nl"
+                ]
+            },
+            {
+                "question": "The command echo \"text\" > file.txt will create file.txt if it does not already exist. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The command echo \"text\" > file.txt will not overwrite file.txt if it already exists. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "The command echo \"text\" >> file.txt will not overwrite file.txt if it already exists. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "A file begins with #!/bin/csh. This means:",
+                "options": [
+                    "This is a Perl script",
+                    "The operator should not be using /bin/csh",
+                    "C Shell compatibility mode is enabled",
+                    "Running the script will invoke /bin/csh to interpret the rest of the file",
+                    "Nothing, this is a comment"
+                ],
+                "correct_answers": [
+                    "Running the script will invoke /bin/csh to interpret the rest of the file"
+                ]
+            },
+            {
+                "question": "Which are appropriate editors for writing shell scripts? (choose two)",
+                "options": [
+                    "Firefox",
+                    "/bin/bash",
+                    "LibreOffice Writer",
+                    "vi",
+                    "nano"
+                ],
+                "correct_answers": [
+                    "vi",
+                    "nano"
+                ]
+            },
+            {
+                "question": "Most of nano’s commands take the form of:",
+                "options": [
+                    "Mouse clicks",
+                    "Escape followed by another character",
+                    "Control and another character",
+                    "The F1 through F12 function keys",
+                    "Alt and another character"
+                ],
+                "correct_answers": [
+                    "Control and another character"
+                ]
+            },
+            {
+                "question": "What does this shell script do? FOO=/tmp/foo if [ ! –d $FOO ]; then mkdir $FOO fi",
+                "options": [
+                    "Creates /tmp/foo if it does not exist",
+                    "Outputs a message to the screen",
+                    "Creates /tmp/foo and raises an error if there is a problem",
+                    "Nothing, since there is a problem with the conditions in the if statement",
+                    "Makes the /tmp/foo directory if a file by that name exists"
+                ],
+                "correct_answers": [
+                    "Creates /tmp/foo if it does not exist"
+                ]
+            },
+            {
+                "question": "Which of the following are correct about for and while loops? (choose two)",
+                "options": [
+                    "for loops have a test each cycle to determine if it should run again",
+                    "for loops operate over a fixed list of items",
+                    "for loops require a variable over which to iterate",
+                    "while loops operate over a fixed list of items",
+                    "while loops have a test each cycle to determine if it should run again"
+                ],
+                "correct_answers": [
+                    "for loops operate over a fixed list of items",
+                    "while loops have a test each cycle to determine if it should run again"
+                ]
+            },
+            {
+                "question": "Given the following part of a script: if [ -f $1 ]; then echo “I am here” fi What is the meaning of $1?",
+                "options": [
+                    "It is a parameter to -f, indicating the size of the file",
+                    "It is the first argument passed to the script",
+                    "It is a special variable that indicates the exit code of the command before it",
+                    "It is a file called $1",
+                    "It is a list of files that gets interpolated"
+                ],
+                "correct_answers": [
+                    "It is the first argument passed to the script"
+                ]
+            },
+            {
+                "question": "Given the following script that is run through ./test.sh hello goodbye: if [ -f $2 ]; then echo \"I am here\" fi When will “I am here” be printed?",
+                "options": [
+                    "If a file called “goodbye” exists in the current directory",
+                    "Never",
+                    "The script will always print “I am here”",
+                    "If there are two files in the current directory",
+                    "If a file called “hello” exists in the current directory"
+                ],
+                "correct_answers": [
+                    "If a file called “goodbye” exists in the current directory"
+                ]
+            },
+            {
+                "question": "What is the correct way to assign the word “Hello” to a variable?",
+                "options": [
+                    "A = “Hello”",
+                    "echo “Hello” &gt; A",
+                    "echo $A “Hello”",
+                    "$A=”Hello”",
+                    "A=”Hello”"
+                ],
+                "correct_answers": [
+                    "A=”Hello”"
+                ]
+            },
+            {
+                "question": "What is the correct way to save the current directory to a variable?",
+                "options": [
+                    "A=`pwd`",
+                    "pwd | $A",
+                    "A=cwd",
+                    "A=pwd",
+                    "pwd $A"
+                ],
+                "correct_answers": [
+                    "A=`pwd`"
+                ]
+            },
+            {
+                "question": "Which shell command accepts input from the user’s keyboard?",
+                "options": [
+                    "echo",
+                    "read",
+                    "gets",
+                    "input",
+                    "$1"
+                ],
+                "correct_answers": [
+                    "read"
+                ]
+            },
+            {
+                "question": "What information is held inside $? ?",
+                "options": [
+                    "The name of the command run",
+                    "The previous command’s exit code",
+                    "The number of arguments passed to the script",
+                    "The current process id",
+                    "The current user ID"
+                ],
+                "correct_answers": [
+                    "The previous command’s exit code"
+                ]
+            },
+            {
+                "question": "How would you finish your script with an exit code of 42?",
+                "options": [
+                    "return 42",
+                    "break 42",
+                    "CODE=42",
+                    "exit 42",
+                    "$?=42"
+                ],
+                "correct_answers": [
+                    "exit 42"
+                ]
+            },
+            {
+                "question": "The if command looks for what exit code to consider a condition to be true?",
+                "options": [
+                    "1",
+                    "0",
+                    "2",
+                    "10",
+                    "255"
+                ],
+                "correct_answers": [
+                    "0"
+                ]
+            },
+            {
+                "question": "The number of users logged in is in a variable called USERS. How would you test to see if 5 users are logged in?",
+                "options": [
+                    "test $USERS –eq 5",
+                    "test –f USERS=5",
+                    "test $USERS = 5",
+                    "test $USERS,5",
+                    "test $USERS –a 5"
+                ],
+                "correct_answers": [
+                    "test $USERS –eq 5"
+                ]
+            },
+            {
+                "question": "Given the following script: while [ ! –f /tmp/foo ]; do echo –n “.” process_data > /tmp/foo done Which of the following are true? (choose two)",
+                "options": [
+                    "The screen will fill with dots.",
+                    "If a file called /tmp/foo exists, process_data won’t be run",
+                    "process_data will be called at most once",
+                    "process_data will never be run",
+                    "/tmp/foo will be removed if it exists"
+                ],
+                "correct_answers": [
+                    "If a file called /tmp/foo exists, process_data won’t be run",
+                    "process_data will be called at most once"
+                ]
+            },
+            {
+                "question": "A conditional that lets you make multiple comparisons with a pattern is called:",
+                "options": [
+                    "fanout",
+                    "case",
+                    "if",
+                    "branch",
+                    "test"
+                ],
+                "correct_answers": [
+                    "case"
+                ]
+            },
+            {
+                "question": "What is the meaning of $(( $i + 1)) ?",
+                "options": [
+                    "1 will be added to the i variable",
+                    "If i is 0, the loop will stop",
+                    "This will return the value of the next argument to the script",
+                    "This will return the value of the first argument to the script",
+                    "This runs the command stored in variable i"
+                ],
+                "correct_answers": [
+                    "1 will be added to the i variable"
+                ]
+            },
+            {
+                "question": "How would you write a test that says “if /tmp/foo is a directory or USERS is greater than 5”?",
+                "options": [
+                    "test –d /tmp/foo –o $USERS –gt 5",
+                    "test –d /tmp/foo | $USERS > 5",
+                    "test /tmp/foo || $USERS > 5",
+                    "test /tmp/foo –d –o $USERS -gt 5"
+                ],
+                "correct_answers": [
+                    "test –d /tmp/foo –o $USERS –gt 5"
+                ]
+            },
+            {
+                "question": "Which of the following are valid CPU types for Intel�based platforms? (choose two)",
+                "options": [
+                    "64-bit",
+                    "32-bit",
+                    "48-bit",
+                    "24-bit"
+                ],
+                "correct_answers": [
+                    "64-bit",
+                    "32-bit"
+                ]
+            },
+            {
+                "question": "64 bit platforms can access more memory than 32 bit platforms. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Choose all of the following statements that are true in regard to virtual RAM: (choose three)",
+                "options": [
+                    "Virtual RAM is stored on a hard drive",
+                    "Virtual RAM is stored in the CPU",
+                    "Virtual RAM is used when available physical RAM is low.",
+                    "Virtual RAM is also called swap space"
+                ],
+                "correct_answers": [
+                    "Virtual RAM is stored on a hard drive",
+                    "Virtual RAM is used when available physical RAM is low.",
+                    "Virtual RAM is also called swap space"
+                ]
+            },
+            {
+                "question": "Which of the following are common busing systems? (choose two)",
+                "options": [
+                    "CPU",
+                    "BIOS",
+                    "USB",
+                    "RAM",
+                    "PCI"
+                ],
+                "correct_answers": [
+                    "USB",
+                    "PCI"
+                ]
+            },
+            {
+                "question": "A division of a hard drive may be referred to as a _______ .",
+                "options": [
+                    "block",
+                    "partition",
+                    "portion",
+                    "label"
+                ],
+                "correct_answers": [
+                    "partition"
+                ]
+            },
+            {
+                "question": "Which of the following are valid partitioning types? (choose two)",
+                "options": [
+                    "GPT",
+                    "PC",
+                    "MBR",
+                    "BIOS"
+                ],
+                "correct_answers": [
+                    "GPT",
+                    "MBR"
+                ]
+            },
+            {
+                "question": "The fdisk command is a tool used for working with the MBR partitioned disks. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of the following is the valid device file name for the first IDE hard drive on the system?",
+                "options": [
+                    "/dev/ide",
+                    "/dev/hda",
+                    "/dev/sda",
+                    "/dev/hd1"
+                ],
+                "correct_answers": [
+                    "/dev/hda"
+                ]
+            },
+            {
+                "question": "Which of the following are valid video cable connector types? (choose two)",
+                "options": [
+                    "HDA",
+                    "VGA",
+                    "AMD",
+                    "DVI"
+                ],
+                "correct_answers": [
+                    "VGA",
+                    "DVI"
+                ]
+            },
+            {
+                "question": "Which of the following commands will display CPU information? (choose two)",
+                "options": [
+                    "lscpu",
+                    "cpuinfo",
+                    "lspic",
+                    "arch",
+                    "showcpu"
+                ],
+                "correct_answers": [
+                    "lscpu",
+                    "arch"
+                ]
+            },
+            {
+                "question": "What are the advantages of solid state disks when compared to traditional spinning platter hard disks? (choose two)",
+                "options": [
+                    "Less heat",
+                    "Faster system boot times",
+                    "Higher capacity",
+                    "Low cost",
+                    "Low power consumption"
+                ],
+                "correct_answers": [
+                    "Less heat",
+                    "Faster system boot times"
+                ]
+            },
+            {
+                "question": "Software that allows hardware devices to communicate with the installed operating system is called?",
+                "options": [
+                    "Instructions",
+                    "Drivers",
+                    "Packages",
+                    "Programs"
+                ],
+                "correct_answers": [
+                    "Drivers"
+                ]
+            },
+            {
+                "question": "Which of the following commands will check hard disk MBR partitions? (choose three)",
+                "options": [
+                    "fdisk",
+                    "gfdisk",
+                    "gdisk",
+                    "cfdisk",
+                    "sfdisk"
+                ],
+                "correct_answers": [
+                    "fdisk",
+                    "cfdisk",
+                    "sfdisk"
+                ]
+            },
+            {
+                "question": "Which of the following commands will check hard disk GPT partitions? (choose three)",
+                "options": [
+                    "gdisk",
+                    "sgdisk",
+                    "sfdisk",
+                    "gfdisk",
+                    "cgdisk"
+                ],
+                "correct_answers": [
+                    "gdisk",
+                    "sgdisk",
+                    "cgdisk"
+                ]
+            },
+            {
+                "question": "When you execute the dmesg command, the system displays messages that are generated by the kernel. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The Linux kernel mounts the following pseudo�filesystems to provide access to information about hardware devices connected to the system: (choose two)",
+                "options": [
+                    "/devices",
+                    "/proc",
+                    "/info",
+                    "/sys"
+                ],
+                "correct_answers": [
+                    "/proc",
+                    "/sys"
+                ]
+            },
+            {
+                "question": "The /proc directory contains a subdirectory for each process present on the system. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The Process ID (PID) of the init process is:",
+                "options": [
+                    "0",
+                    "1",
+                    "100",
+                    "varies"
+                ],
+                "correct_answers": [
+                    "1"
+                ]
+            },
+            {
+                "question": "The process (ps) command shows only processes running in the current shell by default. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The following system load averages are displayed by the top command: (choose three)",
+                "options": [
+                    "15 minute",
+                    "1 minute",
+                    "10 minute",
+                    "5 minute"
+                ],
+                "correct_answers": [
+                    "15 minute",
+                    "1 minute",
+                    "5 minute"
+                ]
+            },
+            {
+                "question": "The free command outputs statistics about:",
+                "options": [
+                    "CPU usage",
+                    "Software usage",
+                    "Memory usage",
+                    "Disk usage"
+                ],
+                "correct_answers": [
+                    "Memory usage"
+                ]
+            },
+            {
+                "question": "What directory typically contains log files?",
+                "options": [
+                    "/proc/loc",
+                    "/log",
+                    "/usr/log",
+                    "/var/log"
+                ],
+                "correct_answers": [
+                    "/var/log"
+                ]
+            },
+            {
+                "question": "Which log file contains messages regarding authentication and authorization?",
+                "options": [
+                    "secure",
+                    "dmesg",
+                    "syslog",
+                    "messages"
+                ],
+                "correct_answers": [
+                    "secure"
+                ]
+            },
+            {
+                "question": "All log files contain only text data. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "A load average of 1.0 always means the system is fully loaded. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "A command that will continuously update statistics about running processes:",
+                "options": [
+                    "tail",
+                    "head",
+                    "top",
+                    "Bottom"
+                ],
+                "correct_answers": [
+                    "top"
+                ]
+            },
+            {
+                "question": "Which of the following is a valid Linux option style for Traditional Unix:",
+                "options": [
+                    "two dashes (–)",
+                    "slash (/)",
+                    "no dash",
+                    "a single dash (-)"
+                ],
+                "correct_answers": [
+                    "a single dash (-)"
+                ]
+            },
+            {
+                "question": "Which file contains the information passed to the kernel at boot time?",
+                "options": [
+                    "/proc/kargs",
+                    "/proc/kopts",
+                    "/proc/cmdline",
+                    "/proc/kernel"
+                ],
+                "correct_answers": [
+                    "/proc/cmdline"
+                ]
+            },
+            {
+                "question": "To make changes permanent for kernel parameter files found under /proc/sys, the following file can have entries added to it:",
+                "options": [
+                    "/etc/sysinfo.conf",
+                    "/etc/procctl.conf",
+                    "/etc/sysctl.conf",
+                    "/etc/procsys.conf"
+                ],
+                "correct_answers": [
+                    "/etc/sysctl.conf"
+                ]
+            },
+            {
+                "question": "The /var directory has files that change over time. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Information about the init process can be found in the /proc/1 directory. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of the following commands will allow you to view all processes on the system? (choose two)",
+                "options": [
+                    "ps -ef",
+                    "ps",
+                    "ps -A",
+                    "ps aux",
+                    "ps -eLf"
+                ],
+                "correct_answers": [
+                    "ps -A",
+                    "ps aux"
+                ]
+            },
+            {
+                "question": "The logging daemon on recent Linux distributions based on systemd is called:",
+                "options": [
+                    "klogd",
+                    "journald",
+                    "rsyslogd",
+                    "syslogd"
+                ],
+                "correct_answers": [
+                    "journald"
+                ]
+            },
+            {
+                "question": "What does the acronym FHS stand for among the the standards supported by the Linux Foundation?",
+                "options": [
+                    "Filesystem Hierarchy Standard",
+                    "File Hierarchy Standard",
+                    "Filesystem Hierarchy Structure"
+                ],
+                "correct_answers": [
+                    "Filesystem Hierarchy Standard"
+                ]
+            },
+            {
+                "question": "Which directory is the root of the filesystem?",
+                "options": [
+                    "/sys",
+                    "/root",
+                    "/",
+                    "/home",
+                    "/var"
+                ],
+                "correct_answers": [
+                    "/"
+                ]
+            },
+            {
+                "question": "The sbin directories are primarily intended to be used by the root user. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of the following would be considered a host?",
+                "options": [
+                    "A printer attached to the network via an IP address",
+                    "A network cable",
+                    "A CD-ROM",
+                    "The computer’s hard drive"
+                ],
+                "correct_answers": [
+                    "A printer attached to the network via an IP address"
+                ]
+            },
+            {
+                "question": "A service is…",
+                "options": [
+                    "…like an IP address.",
+                    "…a file that contains configuration information.",
+                    "…another name for a computer’s hostname.",
+                    "…a feature provided by one computer to another."
+                ],
+                "correct_answers": [
+                    "…a feature provided by one computer to another."
+                ]
+            },
+            {
+                "question": "A network packet contains … (choose two)",
+                "options": [
+                    "…the IP address of the source machine.",
+                    "…a hard drive partition.",
+                    "…the name of the router.",
+                    "…the IP address of the destination machine."
+                ],
+                "correct_answers": [
+                    "…the IP address of the source machine.",
+                    "…the IP address of the destination machine."
+                ]
+            },
+            {
+                "question": "Only servers have hostnames. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which of the following protocols defines how network communication functions?",
+                "options": [
+                    "DHCP",
+                    "DNS",
+                    "TCP/IP",
+                    "SSH"
+                ],
+                "correct_answers": [
+                    "TCP/IP"
+                ]
+            },
+            {
+                "question": "Which of the following are valid IPv4 addresses? (choose two)",
+                "options": [
+                    "192.105.10.10.2",
+                    "192.301.25.25",
+                    "10.33.55.77",
+                    "192.105.10.10"
+                ],
+                "correct_answers": [
+                    "10.33.55.77",
+                    "192.105.10.10"
+                ]
+            },
+            {
+                "question": "Which of the following commands will display the IP address on a Linux system?",
+                "options": [
+                    "ifconfig",
+                    "dig",
+                    "route",
+                    "ipconfig"
+                ],
+                "correct_answers": [
+                    "ifconfig"
+                ]
+            },
+            {
+                "question": "Which of the following commands will display the routing table? (choose two)",
+                "options": [
+                    "dig",
+                    "netstat -r",
+                    "ifconfig",
+                    "route"
+                ],
+                "correct_answers": [
+                    "netstat -r",
+                    "route"
+                ]
+            },
+            {
+                "question": "Which of the following commands will allow you to log into a remote machine?",
+                "options": [
+                    "dig",
+                    "netstat",
+                    "route",
+                    "ssh"
+                ],
+                "correct_answers": [
+                    "ssh"
+                ]
+            },
+            {
+                "question": "What option to the netstat command has information shown as numbers rather than names?",
+                "options": [
+                    "–name",
+                    "-r",
+                    "-t",
+                    "-n"
+                ],
+                "correct_answers": [
+                    "-n"
+                ]
+            },
+            {
+                "question": "Which of the following commands will allow you to log into the machine server1 with the account name nick?",
+                "options": [
+                    "ssh nick&server1",
+                    "ssh nick-server1",
+                    "ssh nick@server1",
+                    "ssh nick->server1"
+                ],
+                "correct_answers": [
+                    "ssh nick@server1"
+                ]
+            },
+            {
+                "question": "The RSA key fingerprint allows the dig command to connect to remote systems. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "When looking at the primary IPv4 configuration file, if the device was configured to be a DHCP client, then the BOOTPROTO value would be set to none. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "When issuing the service network restart command, which of the following occurs?",
+                "options": [
+                    "…brings up all network interfaces, re-reads all related configuration files and then the networking for the system is restarted.",
+                    "…the networking for the system is stopped and then started back up.",
+                    "…takes down all network interfaces, re-reads all related configuration files and then the networking for the system is restarted."
+                ],
+                "correct_answers": [
+                    "…takes down all network interfaces, re-reads all related configuration files and then the networking for the system is restarted."
+                ]
+            },
+            {
+                "question": "Which of the following files contains the IP addresses of the name servers the system should consult in any attempt to resolve names to IP addresses?",
+                "options": [
+                    "/etc/nsswitch.conf",
+                    "/etc/resolve.conf",
+                    "/etc/hosts",
+                    "/etc/resolv.conf"
+                ],
+                "correct_answers": [
+                    "/etc/resolv.conf"
+                ]
+            },
+            {
+                "question": "Which of the following commands can be used to display socket statistics, and supports all major packet and socket types?",
+                "options": [
+                    "ss",
+                    "ifconfig",
+                    "route",
+                    "top"
+                ],
+                "correct_answers": [
+                    "ss"
+                ]
+            },
+            {
+                "question": "Which files contain user account information? (choose two)",
+                "options": [
+                    "/etc/shadow",
+                    "/etc/group",
+                    "/etc/passwords",
+                    "/etc/passwd"
+                ],
+                "correct_answers": [
+                    "/etc/shadow",
+                    "/etc/passwd"
+                ]
+            },
+            {
+                "question": "Which user can view the /etc/shadow file?",
+                "options": [
+                    "Any member of the password group",
+                    "No users",
+                    "The root user",
+                    "All users"
+                ],
+                "correct_answers": [
+                    "The root user"
+                ]
+            },
+            {
+                "question": "Which command will display the UID, GID and groups your current user belongs to?",
+                "options": [
+                    "whoami",
+                    "Who",
+                    "id",
+                    "about"
+                ],
+                "correct_answers": [
+                    "id"
+                ]
+            },
+            {
+                "question": "Each user belongs to at least one group. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which command will display the users that are currently logged in to the system?",
+                "options": [
+                    "about",
+                    "who",
+                    "id",
+                    "whoami"
+                ],
+                "correct_answers": [
+                    "who"
+                ]
+            },
+            {
+                "question": "The sudo command allows regular users to…",
+                "options": [
+                    "…execute commands as another user.",
+                    "…execute any command as root, after providing the root password.",
+                    "…run any command as root, after providing the sudo password.",
+                    "…run any commands as a system account without logging in."
+                ],
+                "correct_answers": [
+                    "…execute commands as another user."
+                ]
+            },
+            {
+                "question": "Which of the following commands will display the group(s) a user belongs to?",
+                "options": [
+                    "all",
+                    "id",
+                    "whoami",
+                    "group"
+                ],
+                "correct_answers": [
+                    "id"
+                ]
+            },
+            {
+                "question": "Which of the following commands will display the groups that the user bob belongs to?",
+                "options": [
+                    "group bob",
+                    "id bob",
+                    "groups -a",
+                    "all bob"
+                ],
+                "correct_answers": [
+                    "id bob"
+                ]
+            },
+            {
+                "question": "The /etc/group file follows what structure?",
+                "options": [
+                    "group:GID:user_list",
+                    "groups -a",
+                    "user:group",
+                    "group_name:password_placehoder:GID:user_list"
+                ],
+                "correct_answers": [
+                    "group_name:password_placehoder:GID:user_list"
+                ]
+            },
+            {
+                "question": "A GID is associated with a group name. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "A user can belong to…",
+                "options": [
+                    "At least 16 groups",
+                    "Only five groups",
+                    "Only groups with a GID over 500",
+                    "Only one group"
+                ],
+                "correct_answers": [
+                    "At least 16 groups"
+                ]
+            },
+            {
+                "question": "Sudo privileges can be used to specify which user can use the sudo command to execute commands as other users. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "In distributions that do not allow the root user to login directly or via the su command, the installation process automatically configures one user account to be able to use the sudo command to execute commands as if they were executed by the root user. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of the following commands will display how long the system has been running since the last boot? (choose two)",
+                "options": [
+                    "who",
+                    "id",
+                    "uptime",
+                    "w"
+                ],
+                "correct_answers": [
+                    "uptime",
+                    "w"
+                ]
+            },
+            {
+                "question": "The /etc/shadow file contains plain-text passwords. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which command can be used to view the /etc/passwd file entries?",
+                "options": [
+                    "uptime",
+                    "uppasswd",
+                    "getpasswd",
+                    "getent"
+                ],
+                "correct_answers": [
+                    "getent"
+                ]
+            },
+            {
+                "question": "All Linux systems allow administrators to log in as root. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "What is the default user for the su command?",
+                "options": [
+                    "All users",
+                    "The root user",
+                    "Any member of the password group",
+                    "The most recently created user"
+                ],
+                "correct_answers": [
+                    "The root user"
+                ]
+            },
+            {
+                "question": "Which command would allow a user to execute commands as root?",
+                "options": [
+                    "whoami",
+                    "about",
+                    "sudo",
+                    "who",
+                    "grep"
+                ],
+                "correct_answers": [
+                    "sudo"
+                ]
+            },
+            {
+                "question": "File permissions cannot be edited by the root user. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which command is used to display only the user’s primary group?",
+                "options": [
+                    "who",
+                    "id -g",
+                    "man",
+                    "whoami",
+                    "about"
+                ],
+                "correct_answers": [
+                    "id -g"
+                ]
+            },
+            {
+                "question": "Traditional UNIX systems allowed users to belong to how many groups?",
+                "options": [
+                    "10,000",
+                    "1",
+                    "65,000",
+                    "256",
+                    "16"
+                ],
+                "correct_answers": [
+                    "16"
+                ]
+            },
+            {
+                "question": "What would an account with the UID 376 typically be used for?",
+                "options": [
+                    "White hat hackers.",
+                    "Temporary employees.",
+                    "New users with full privileges.",
+                    "System service access.",
+                    "Root user access."
+                ],
+                "correct_answers": [
+                    "System service access."
+                ]
+            },
+            {
+                "question": "Usernames cannot be the same as group names. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "To display the group(s) a user belongs to use this command:",
+                "options": [
+                    "all",
+                    "id",
+                    "grep",
+                    "group",
+                    "whoami"
+                ],
+                "correct_answers": [
+                    "id"
+                ]
+            },
+            {
+                "question": "Which command will display the groups that the root user belongs to?",
+                "options": [
+                    "all -t",
+                    "groups -a",
+                    "id root",
+                    "all",
+                    "group -r"
+                ],
+                "correct_answers": [
+                    "id root"
+                ]
+            },
+            {
+                "question": "A value of 0 in the “minimum” password aging field means the user cannot change their password. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The “Epoch” began on January 1, 1970. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The last command displays reboot records…",
+                "options": [
+                    "By default",
+                    "Never",
+                    "Only when issued by the root user",
+                    "After restarting the system",
+                    "When issued with the -p switch"
+                ],
+                "correct_answers": [
+                    "By default"
+                ]
+            },
+            {
+                "question": "Sudo privileges allow users to execute commands as another user. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "When using the sudo command to execute a command as the root user, the command prompts for the user’s own password, not that of the root user. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The first line of this command displays how long the system has been running since being rebooted.",
+                "options": [
+                    "su",
+                    "getent",
+                    "w",
+                    "id",
+                    "who"
+                ],
+                "correct_answers": [
+                    "w"
+                ]
+            },
+            {
+                "question": "The /etc/shadow file contains encrypted passwords. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which command can be used to view the /var/log/wtmp file entries?",
+                "options": [
+                    "getent",
+                    "uptime",
+                    "getpasswd",
+                    "uppasswd",
+                    "last"
+                ],
+                "correct_answers": [
+                    "last"
+                ]
+            },
+            {
+                "question": "UIDs 1-499 are usually reserved for what kind of users?",
+                "options": [
+                    "Remote log-in accounts",
+                    "Are not used for user accounts, but for group accounts",
+                    "System accounts, such as server processes",
+                    "Log-in (human) users"
+                ],
+                "correct_answers": [
+                    "System accounts, such as server processes"
+                ]
+            },
+            {
+                "question": "If a user is deleted, the files and directories that the user owned…",
+                "options": [
+                    "…will have no user owner.",
+                    "…will have no UID owner.",
+                    "…will show a UID as the owner, but not user name.",
+                    "…are deleted as well."
+                ],
+                "correct_answers": [
+                    "…will show a UID as the owner, but not user name."
+                ]
+            },
+            {
+                "question": "Which of the following options for the useradd command allows root to specify the UID to be associated with the account?",
+                "options": [
+                    "-g",
+                    "-G",
+                    "-u",
+                    "-M"
+                ],
+                "correct_answers": [
+                    "-u"
+                ]
+            },
+            {
+                "question": "Which of the following options for the useradd command allows root to specify supplementary groups the user will be a member of?",
+                "options": [
+                    "-G",
+                    "-u",
+                    "-g",
+                    "-U"
+                ],
+                "correct_answers": [
+                    "-G"
+                ]
+            },
+            {
+                "question": "On a system that does not use UPG, the useradd command will also create a user group. For example, user bob, group bob. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of the following commands will add the group extra to the user bob‘s secondary groups in addition to bob‘s current secondary groups?",
+                "options": [
+                    "usermod -G extra bob",
+                    "usermod -ag bob extra",
+                    "usermod -aG extra bob",
+                    "usermod -a extra bob"
+                ],
+                "correct_answers": [
+                    "usermod -aG extra bob"
+                ]
+            },
+            {
+                "question": "Which option for the usermod command can be used to specify a user’s group ID (either primary or secondary)? (choose two)",
+                "options": [
+                    "-s",
+                    "-g",
+                    "-S",
+                    "-G"
+                ],
+                "correct_answers": [
+                    "-g",
+                    "-G"
+                ]
+            },
+            {
+                "question": "For non-root users, the passwd command can only be used to change the password of the user running the command. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The groupmod command can be used to change a group name. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The groupmod command can be used to change a group GID. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The groupmod command can be used to add users to a group. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which of the following commands can be used to modify a group?",
+                "options": [
+                    "groupmod",
+                    "groupadd",
+                    "modgroup",
+                    "addgroup"
+                ],
+                "correct_answers": [
+                    "groupmod"
+                ]
+            },
+            {
+                "question": "Which command can be used to determine a user’s most recent log in?",
+                "options": [
+                    "history",
+                    "last",
+                    "login",
+                    "shell"
+                ],
+                "correct_answers": [
+                    "last"
+                ]
+            },
+            {
+                "question": "Which of the following files contains encrypted user password information?",
+                "options": [
+                    "/etc/usr",
+                    "/etc/group",
+                    "/etc/passwd",
+                    "/etc/shadow"
+                ],
+                "correct_answers": [
+                    "/etc/shadow"
+                ]
+            },
+            {
+                "question": "Which of the following files contains user IDs?",
+                "options": [
+                    "/etc/group",
+                    "/etc/passwd",
+                    "/etc/usr",
+                    "/etc/shadow"
+                ],
+                "correct_answers": [
+                    "/etc/passwd"
+                ]
+            },
+            {
+                "question": "Which of the following files does the groupadd command use to determine the new GID when a GID isn’t specified?",
+                "options": [
+                    "/etc/usr",
+                    "/etc/shadow",
+                    "/etc/passwd",
+                    "/etc/group"
+                ],
+                "correct_answers": [
+                    "/etc/group"
+                ]
+            },
+            {
+                "question": "Which of the following commands, run as root, will prevent the user bob from logging in?",
+                "options": [
+                    "usermod -L bob",
+                    "usermod -l bob",
+                    "usermod -D bob",
+                    "usermod -d bob"
+                ],
+                "correct_answers": [
+                    "usermod -L bob"
+                ]
+            },
+            {
+                "question": "What directory contains a user’s home directory?",
+                "options": [
+                    "/user",
+                    "/",
+                    "/home",
+                    "/rootfs"
+                ],
+                "correct_answers": [
+                    "/home"
+                ]
+            },
+            {
+                "question": "GIDs under 500 (or 1000) are usually reserved for what kind of groups?",
+                "options": [
+                    "System use",
+                    "Are not used for groups, but for user accounts",
+                    "Administrators",
+                    "User private groups (UPG)"
+                ],
+                "correct_answers": [
+                    "System use"
+                ]
+            },
+            {
+                "question": "If a user is deleted, the files and directories that the user owned…",
+                "options": [
+                    "…are deleted as well.",
+                    "…will have no user owner.",
+                    "…may be important for others in the organization",
+                    "…will have no UID owner."
+                ],
+                "correct_answers": [
+                    "…may be important for others in the organization"
+                ]
+            },
+            {
+                "question": "Which of the following options for the useradd command allows you to use a different primary group then the default?",
+                "options": [
+                    "-g",
+                    "-G",
+                    "-U",
+                    "-u"
+                ],
+                "correct_answers": [
+                    "-g"
+                ]
+            },
+            {
+                "question": "On a system that uses UPG, the UID must not be the same as the GID.. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "The usermod command can be used to unlock a users account with the following option.",
+                "options": [
+                    "-s",
+                    "-u",
+                    "-f",
+                    "-U"
+                ],
+                "correct_answers": [
+                    "-U"
+                ]
+            },
+            {
+                "question": "Which of the following options for the useradd command allows you to use a different login shell than the default?",
+                "options": [
+                    "-g",
+                    "-s",
+                    "-u",
+                    "-U"
+                ],
+                "correct_answers": [
+                    "-s"
+                ]
+            },
+            {
+                "question": "Which of the following commands will add the group extra to the user jane’s secondary groups in addition to jane‘s current secondary groups?",
+                "options": [
+                    "usermod -a extra jane",
+                    "usermod -ag jane extra",
+                    "usermod -aG extra jane",
+                    "usermod -G extra jane"
+                ],
+                "correct_answers": [
+                    "usermod -aG extra jane"
+                ]
+            },
+            {
+                "question": "Which option for the usermod command can be used to specify a user’s primary group ID?",
+                "options": [
+                    "-g",
+                    "-S",
+                    "-G",
+                    "-s"
+                ],
+                "correct_answers": [
+                    "-g"
+                ]
+            },
+            {
+                "question": "For root users, the passwd command can only be used to change the password of the user running the command. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "The userdel -r command will…",
+                "options": [
+                    "…will prompt before deleting each file owned by a user.",
+                    "…delete the user account, but leave the user’s files by default.",
+                    "…automatically delete a user and the user’s home directory and mail spool and their contents.",
+                    "…automatically delete a user and all the files owned by that user."
+                ],
+                "correct_answers": [
+                    "…automatically delete a user and the user’s home directory and mail spool and their contents."
+                ]
+            },
+            {
+                "question": "The groupmod command can be used to change a group name. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The groupmod command cannot be used to change a group GID. True or False?",
+                "options": [
+                    "True",
+                    "Fasle"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "The groupdel command can be used to delete primary groups. True or False?",
+                "options": [
+                    "True",
+                    "Fasle"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which of the following commands can be used to modify a user?",
+                "options": [
+                    "adduser",
+                    "moduser",
+                    "useradd",
+                    "usermod"
+                ],
+                "correct_answers": [
+                    "usermod"
+                ]
+            },
+            {
+                "question": "Which command can be used to determine a user’s most recent log in?",
+                "options": [
+                    "history",
+                    "shell",
+                    "login",
+                    "last"
+                ],
+                "correct_answers": [
+                    "last"
+                ]
+            },
+            {
+                "question": "The /etc/passwd file contains encrypted user password information. True or False?",
+                "options": [
+                    "False",
+                    "True"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which of the following files contains group IDs?",
+                "options": [
+                    "/etc/passwd",
+                    "/etc/usr",
+                    "/etc/shadow",
+                    "/etc/group"
+                ],
+                "correct_answers": [
+                    "/etc/group"
+                ]
+            },
+            {
+                "question": "Which command allows you to view or change some of the default values used by the useradd command?",
+                "options": [
+                    "useradd -D",
+                    "useradd -r",
+                    "modvalue",
+                    "useradd -f"
+                ],
+                "correct_answers": [
+                    "useradd -D"
+                ]
+            },
+            {
+                "question": "Which of the following commands, run as root, will prevent the user jane from logging in?",
+                "options": [
+                    "usermod -d jane",
+                    "usermod -D jane",
+                    "usermod -L jane",
+                    "usermod -l jane"
+                ],
+                "correct_answers": [
+                    "usermod -L jane"
+                ]
+            },
+            {
+                "question": "Which of the following commands set “other” permissions on file to r-x?",
+                "options": [
+                    "chmod o-r-w file",
+                    "chmod o+rx file",
+                    "chmod o=rx file",
+                    "chmod o=r+x file"
+                ],
+                "correct_answers": [
+                    "chmod o=rx file"
+                ]
+            },
+            {
+                "question": "Which of the following commands sets “other” permissions on file to r-x?",
+                "options": [
+                    "chmod 775 file",
+                    "chmod 776 file",
+                    "chmod 777 file",
+                    "chmod 774 file"
+                ],
+                "correct_answers": [
+                    "chmod 775 file"
+                ]
+            },
+            {
+                "question": "Only one set (user, group, other) of permission can be changed at once using the symbolic method. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which of the following are methods for setting permissions using the chmod command? (choose two)",
+                "options": [
+                    "letter",
+                    "primary",
+                    "symbolic",
+                    "octal"
+                ],
+                "correct_answers": [
+                    "symbolic",
+                    "octal"
+                ]
+            },
+            {
+                "question": "The chown command can be used to change the owner and group of a file. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The user sysadmin will be able to read a file because they own it. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The user sysadmin will be able to change the permissions of a file because they own it. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Octal notation uses the following values for the permissions granted:",
+                "options": [
+                    "r = 7, w = 5, x = 0",
+                    "r = 3, w = 2, x = 1",
+                    "r = 4, w = 2, x = 0",
+                    "r = 4, w = 2, x = 1"
+                ],
+                "correct_answers": [
+                    "r = 4, w = 2, x = 1"
+                ]
+            },
+            {
+                "question": "Which of the following permissions would allow all users to add, view, and delete files in a directory?",
+                "options": [
+                    "750",
+                    "775",
+                    "666",
+                    "777"
+                ],
+                "correct_answers": [
+                    "777"
+                ]
+            },
+            {
+                "question": "A user cannot delete a file if they do not own it. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "The “execute” permission on a directory allows you to: (choose three)",
+                "options": [
+                    "Along with write permission to successfully delete the directory",
+                    "Along with read permission to successfully perform ls -l",
+                    "Along with write permission to successfully create new files",
+                    "Change to that directory or use it as part of a path"
+                ],
+                "correct_answers": [
+                    "Along with write permission to successfully delete the directory",
+                    "Along with write permission to successfully create new files",
+                    "Change to that directory or use it as part of a path"
+                ]
+            },
+            {
+                "question": "The “execute” permission on a file allows you to:",
+                "options": [
+                    "Move the file to a new directory",
+                    "Delete the file",
+                    "Run the file as a script",
+                    "This permission isn’t meaningful for text files."
+                ],
+                "correct_answers": [
+                    "Run the file as a script"
+                ]
+            },
+            {
+                "question": "The chgrp command can be used on a file by:",
+                "options": [
+                    "A user that belongs to the files current group",
+                    "Only the file owner",
+                    "The file owner and root",
+                    "Only root"
+                ],
+                "correct_answers": [
+                    "Only root"
+                ]
+            },
+            {
+                "question": "The chown command can be used to change the user owner on a file by:",
+                "options": [
+                    "The file owner",
+                    "Only root",
+                    "The file owner and root",
+                    "A user that belongs to the files current group"
+                ],
+                "correct_answers": [
+                    "Only root"
+                ]
+            },
+            {
+                "question": "The chmod command can be used on a file by:",
+                "options": [
+                    "Only root",
+                    "A user that belongs to the files current group",
+                    "The file owner",
+                    "The file owner and root"
+                ],
+                "correct_answers": [
+                    "The file owner and root"
+                ]
+            },
+            {
+                "question": "The “execute” permission is never set on files by default. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which of the following chown commands will change the myFile user ownership to the user sam and the group ownership to administrators? (choose two)",
+                "options": [
+                    "chown sam administrators myFile",
+                    "chown sam.administrators myFile",
+                    "chown sam:administrators myFile",
+                    "chown sam+administrators myFile"
+                ],
+                "correct_answers": [
+                    "chown sam.administrators myFile",
+                    "chown sam:administrators myFile"
+                ]
+            },
+            {
+                "question": "The chown command permits changing group ownership done by root only. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "The user owner of a file will always have the same or higher permissions as “other”. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Which of the following commands will list hidden files as well as their ownership?",
+                "options": [
+                    "ls -la",
+                    "ls -l",
+                    "ls -a",
+                    "ls -z"
+                ],
+                "correct_answers": [
+                    "ls -la"
+                ]
+            },
+            {
+                "question": "The /tmp directory is a temporary directory designed as a location where any user can create a temporary file. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "The “sticky bit” permission…",
+                "options": [
+                    "…sets the group ownership of any new file created in a directory.",
+                    "…prevents others from removing files they don’t own from a common directory.",
+                    "…changes the group ownership of existing files in a directory.",
+                    "…prevents others from overwriting files they don’t own in common directories."
+                ],
+                "correct_answers": [
+                    "…prevents others from removing files they don’t own from a common directory."
+                ]
+            },
+            {
+                "question": "Which of the following commands will set the “sticky bit” on /shared ?",
+                "options": [
+                    "chmod 2777 /shared",
+                    "chmod 1777 /shared",
+                    "chmod 6777 /shared",
+                    "chmod 4777 /shared"
+                ],
+                "correct_answers": [
+                    "chmod 1777 /shared"
+                ]
+            },
+            {
+                "question": "The “setuid” permission…",
+                "options": [
+                    "…prevents the owner of a file from being changed.",
+                    "…allows files in a directory to be manipulated as by the directory owner.",
+                    "…reports the output of a script to the owner.",
+                    "…allows a command to be run as the file owner."
+                ],
+                "correct_answers": [
+                    "…allows a command to be run as the file owner."
+                ]
+            },
+            {
+                "question": "Which of the following commands will set setuid for /usr/bin/program?",
+                "options": [
+                    "chmod 4755 /usr/bin/program",
+                    "chmod 2755 /usr/bin/program",
+                    "None of the above",
+                    "chmod 1755 /usr/bin/program"
+                ],
+                "correct_answers": [
+                    "chmod 4755 /usr/bin/program"
+                ]
+            },
+            {
+                "question": "The “setgid” permission… (choose two)",
+                "options": [
+                    "…prevents the group owner of a file from being changed.",
+                    "…allows a command to be run as the group owner of the file.",
+                    "…allows files created in a directory to be owned by the group that owns the directory.",
+                    "…can only be set on files."
+                ],
+                "correct_answers": [
+                    "…allows a command to be run as the group owner of the file.",
+                    "…allows files created in a directory to be owned by the group that owns the directory."
+                ]
+            },
+            {
+                "question": "Which of the following commands will set setgid on /shared ?",
+                "options": [
+                    "None of the above",
+                    "chmod 2777 /shared",
+                    "chmod 1777 /shared",
+                    "chmod 4777 /shared",
+                    "chmod 4777 /shared"
+                ],
+                "correct_answers": [
+                    "chmod 2777 /shared"
+                ]
+            },
+            {
+                "question": "Which of the following long listings represents setgid set for /shared ?",
+                "options": [
+                    "drwxrwsrwx. 12 root group 4096 Oct 21 13:12 /shared",
+                    "drwsrwxrwx. 12 root group 4096 Oct 21 13:12 /shared",
+                    "drwxrwxrws. 12 root group 4096 Oct 21 13:12 /shared",
+                    "drwSrwxrwx. 12 root group 4096 Oct 21 13:12 /shared"
+                ],
+                "correct_answers": [
+                    "drwxrwsrwx. 12 root group 4096 Oct 21 13:12 /shared"
+                ]
+            },
+            {
+                "question": "Setting setgid on a directory…",
+                "options": [
+                    "…will allow scripts in the directory to be executed as the group owner of the directory.",
+                    "…is not allowed by the system.",
+                    "…does nothing.",
+                    "…will set the group owner of all files created in the directory to the group owner of the directory."
+                ],
+                "correct_answers": [
+                    "…will set the group owner of all files created in the directory to the group owner of the directory."
+                ]
+            },
+            {
+                "question": "Deleting a source file will break an associated hard link. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "A source and a hard link must be part of the same filesystem. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "Deleting a source file will break an associated symbolic link. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "True"
+                ]
+            },
+            {
+                "question": "A source file and a symbolic link must be part of the same file system. True or False?",
+                "options": [
+                    "True",
+                    "False"
+                ],
+                "correct_answers": [
+                    "False"
+                ]
+            },
+            {
+                "question": "Which of the following commands would create a hard link, link to file?",
+                "options": [
+                    "ln file link",
+                    "ln link file",
+                    "ln -s file link",
+                    "ln -s link file"
+                ],
+                "correct_answers": [
+                    "ln file link"
+                ]
+            },
+            {
+                "question": "Which of the following commands would create a symbolic link, link to file?",
+                "options": [
+                    "ln file link",
+                    "ln -s link file",
+                    "ln link file",
+                    "ln -s file link"
+                ],
+                "correct_answers": [
+                    "ln -s file link"
+                ]
+            },
+            {
+                "question": "Which of the following ls commands, when executed, will only show information about the directory itself? (choose two)",
+                "options": [
+                    "ls -h",
+                    "ld -d",
+                    "ls -ld",
+                    "ld -a"
+                ],
+                "correct_answers": [
+                    "ls -ld",
+                    "ld -d"
+                ]
+            },
+            {
+                "question": "Which of the following directories are designed as locations where any user can create a temporary file? (choose two)",
+                "options": [
+                    "/sbin",
+                    "/lost+found",
+                    "/tmp",
+                    "/home",
+                    "/var/tmp"
+                ],
+                "correct_answers": [
+                    "/tmp",
+                    "/var/tmp"
+                ]
+            }
+        ];
+
+        let currentQuizQuestions = [];
+        const quizContainer = document.getElementById('quiz-container');
+        const numQuestionsInput = document.getElementById('num-questions');
+        const startTestBtn = document.getElementById('start-test-btn');
+        const evaluateBtn = document.getElementById('evaluate-btn');
+        const resetTestBtn = document.getElementById('reset-test-btn');
+        const resultsDisplay = document.getElementById('results-display');
+        const errorMessage = document.getElementById('error-message');
+
+        // Function to shuffle an array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Function to start the test
+        function startTest() {
+            const numRequested = parseInt(numQuestionsInput.value, 10);
+            if (isNaN(numRequested) || numRequested <= 0 || numRequested > mcqData.length) {
+                errorMessage.textContent = `Please enter a number between 1 and ${mcqData.length}.`;
+                errorMessage.style.display = 'block';
+                return;
+            }
+            errorMessage.style.display = 'none';
+
+            // Shuffle all questions
+            shuffleArray(mcqData);
+            // Select the requested number of questions
+            currentQuizQuestions = mcqData.slice(0, numRequested);
+
+            quizContainer.innerHTML = '';
+            resultsDisplay.style.display = 'none';
+            evaluateBtn.style.display = 'block';
+            resetTestBtn.style.display = 'block';
+            startTestBtn.style.display = 'none';
+            numQuestionsInput.disabled = true;
+
+            currentQuizQuestions.forEach((q, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question-card';
+                questionElement.innerHTML = `<p class="question-text">Q${index + 1}: ${q.question}</p>`;
+
+                // Determine if it's a multiple-choice or multi-select question
+                const inputType = q.correct_answers.length > 1 ? 'checkbox' : 'radio';
+                const name = `question-${index}`;
+
+                // Shuffle options for each question
+                shuffleArray(q.options);
+
+                q.options.forEach((option, optIndex) => {
+                    const optionLabel = document.createElement('label');
+                    optionLabel.className = 'option-label';
+                    optionLabel.innerHTML = `
+                        <input type="${inputType}" name="${name}" value="${option}" data-question-index="${index}">
+                        ${option}
+                    `;
+                    questionElement.appendChild(optionLabel);
+                });
+                quizContainer.appendChild(questionElement);
+            });
+        }
+
+        // Function to evaluate answers
+        function evaluateAnswers() {
+            let score = 0;
+            currentQuizQuestions.forEach((q, index) => {
+                const questionElement = quizContainer.children[index];
+                const selectedInputs = questionElement.querySelectorAll(`input[name="question-${index}"]:checked`);
+                const selectedAnswers = Array.from(selectedInputs).map(input => input.value);
+
+                // Disable all inputs after evaluation
+                questionElement.querySelectorAll(`input[name="question-${index}"]`).forEach(input => {
+                    input.disabled = true;
+                });
+
+                let isCorrect = true;
+                // Check if all correct answers were selected and no incorrect ones were selected
+                if (selectedAnswers.length !== q.correct_answers.length ||
+                    !selectedAnswers.every(ans => q.correct_answers.includes(ans))) {
+                    isCorrect = false;
+                }
+
+                // Highlight options
+                questionElement.querySelectorAll('.option-label').forEach(label => {
+                    const optionValue = label.querySelector('input').value;
+
+                    if (q.correct_answers.includes(optionValue)) {
+                        label.classList.add('correct'); // Mark all correct answers
+                    }
+
+                    if (selectedAnswers.includes(optionValue) && !q.correct_answers.includes(optionValue)) {
+                        label.classList.add('selected-incorrect'); // Mark user's incorrect selections
+                        isCorrect = false; // Ensure overall question is marked incorrect
+                    } else if (!selectedAnswers.includes(optionValue) && q.correct_answers.includes(optionValue)) {
+                        // This case handles correct answers that the user *missed* selecting
+                        label.classList.add('correct-not-selected');
+                        isCorrect = false; // Ensure overall question is marked incorrect
+                    }
+                });
+
+                if (isCorrect) {
+                    score++;
+                }
+            });
+
+            resultsDisplay.textContent = `You scored ${score} out of ${currentQuizQuestions.length} questions correctly!`;
+            resultsDisplay.style.display = 'block';
+            evaluateBtn.style.display = 'none';
+        }
+
+        // Function to reset the test
+        function resetTest() {
+            quizContainer.innerHTML = '';
+            resultsDisplay.style.display = 'none';
+            evaluateBtn.style.display = 'none';
+            resetTestBtn.style.display = 'none';
+            startTestBtn.style.display = 'block';
+            numQuestionsInput.disabled = false;
+            numQuestionsInput.value = 10; // Reset to default
+            currentQuizQuestions = [];
+        }
+
+        // Event Listeners
+        startTestBtn.addEventListener('click', startTest);
+        evaluateBtn.addEventListener('click', evaluateAnswers);
+        resetTestBtn.addEventListener('click', resetTest);
+    </script>
+</body>
+</html>
