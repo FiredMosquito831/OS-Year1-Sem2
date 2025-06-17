@@ -147,19 +147,23 @@
         <h1 class="text-3xl font-bold text-center mb-6 text-blue-800">MCQ Test practice for OS (zota)</h1>
 
         <div class="control-panel">
-            <label for="num-questions" class="text-lg font-medium text-blue-700">Number of Questions (max 379):</label>
-            <input type="number" id="num-questions" value="10" min="1" max="379"
+            <label for="num-questions" class="text-lg font-medium text-blue-700">Number of Questions (max 154):</label>
+            <input type="number" id="num-questions" value="10" min="1" max="154"
                    class="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             <div class="flex-row">
                 <button id="start-test-btn" class="button button-primary flex-grow">Start Test</button>
-                <button id="evaluate-btn" class="button button-primary flex-grow" style="display: none;">Evaluate Answers</button>
-                <button id="reset-test-btn" class="button button-secondary flex-grow" style="display: none;">Reset Test</button>
+                <button id="evaluate-btn-top" class="button button-primary flex-grow" style="display: none;">Evaluate Answers</button>
+                <button id="reset-test-btn-top" class="button button-secondary flex-grow" style="display: none;">Reset Test</button>
             </div>
             <div id="error-message" class="error-message" style="display: none;"></div>
         </div>
 
         <div id="quiz-container" class="mt-8">
             <!-- Questions will be loaded here -->
+            <div id="quiz-buttons-bottom" class="flex-row mt-8" style="display: none;">
+                <button id="evaluate-btn-bottom" class="button button-primary flex-grow">Evaluate Answers</button>
+                <button id="reset-test-btn-bottom" class="button button-secondary flex-grow">Reset Test</button>
+            </div>
         </div>
 
         <div id="results-display" class="results" style="display: none;">
@@ -3122,7 +3126,7 @@
                     "/sys"
                 ],
                 "correct_answers": [
-                    "/proc",
+                    " /proc",
                     "/sys"
                 ]
             },
@@ -3261,7 +3265,7 @@
                     "/proc/kernel"
                 ],
                 "correct_answers": [
-                    "/proc/cmdline"
+                    " /proc/cmdline"
                 ]
             },
             {
@@ -3273,7 +3277,7 @@
                     "/etc/procsys.conf"
                 ],
                 "correct_answers": [
-                    "/etc/sysctl.conf"
+                    " /etc/sysctl.conf"
                 ]
             },
             {
@@ -3529,7 +3533,7 @@
                     "/etc/resolv.conf"
                 ],
                 "correct_answers": [
-                    "/etc/resolv.conf"
+                    " /etc/resolv.conf"
                 ]
             },
             {
@@ -4093,7 +4097,7 @@
                     "/etc/shadow"
                 ],
                 "correct_answers": [
-                    "/etc/shadow"
+                    " /etc/shadow"
                 ]
             },
             {
@@ -4105,7 +4109,7 @@
                     "/etc/shadow"
                 ],
                 "correct_answers": [
-                    "/etc/passwd"
+                    " /etc/passwd"
                 ]
             },
             {
@@ -4117,7 +4121,7 @@
                     "/etc/group"
                 ],
                 "correct_answers": [
-                    "/etc/group"
+                    " /etc/group"
                 ]
             },
             {
@@ -4333,7 +4337,7 @@
                     "/etc/group"
                 ],
                 "correct_answers": [
-                    "/etc/group"
+                    " /etc/group"
                 ]
             },
             {
@@ -4793,8 +4797,16 @@
         const quizContainer = document.getElementById('quiz-container');
         const numQuestionsInput = document.getElementById('num-questions');
         const startTestBtn = document.getElementById('start-test-btn');
-        const evaluateBtn = document.getElementById('evaluate-btn');
-        const resetTestBtn = document.getElementById('reset-test-btn');
+
+        // Top buttons
+        const evaluateBtnTop = document.getElementById('evaluate-btn-top');
+        const resetTestBtnTop = document.getElementById('reset-test-btn-top');
+
+        // Bottom buttons container and buttons
+        const quizButtonsBottom = document.getElementById('quiz-buttons-bottom');
+        const evaluateBtnBottom = document.getElementById('evaluate-btn-bottom');
+        const resetTestBtnBottom = document.getElementById('reset-test-btn-bottom');
+
         const resultsDisplay = document.getElementById('results-display');
         const errorMessage = document.getElementById('error-message');
 
@@ -4808,7 +4820,7 @@
 
         // Function to start the test
         function startTest() {
-            const numRequested = parseInt(numQuestionsInput.value, numQuestionsInput.value);
+            const numRequested = parseInt(numQuestionsInput.value, 10); // Changed base to 10 for consistency, though it doesn't affect behavior for these values
             if (isNaN(numRequested) || numRequested <= 0 || numRequested > mcqData.length) {
                 errorMessage.textContent = `Please enter a number between 1 and ${mcqData.length}.`;
                 errorMessage.style.display = 'block';
@@ -4821,11 +4833,16 @@
             // Select the requested number of questions
             currentQuizQuestions = mcqData.slice(0, numRequested);
 
-            quizContainer.innerHTML = '';
+            quizContainer.innerHTML = ''; // Clear previous questions
             resultsDisplay.style.display = 'none';
-            evaluateBtn.style.display = 'block';
-            resetTestBtn.style.display = 'block';
+
+            // Hide start button, show evaluate/reset buttons (both top and bottom)
             startTestBtn.style.display = 'none';
+            evaluateBtnTop.style.display = 'block';
+            resetTestBtnTop.style.display = 'block';
+            quizButtonsBottom.style.display = 'flex'; // Use flex to show the container
+            evaluateBtnBottom.style.display = 'block';
+            resetTestBtnBottom.style.display = 'block';
             numQuestionsInput.disabled = true;
 
             currentQuizQuestions.forEach((q, index) => {
@@ -4840,7 +4857,7 @@
                 // Shuffle options for each question
                 shuffleArray(q.options);
 
-                q.options.forEach((option, optIndex) => {
+                q.options.forEach((option) => {
                     const optionLabel = document.createElement('label');
                     optionLabel.className = 'option-label';
                     optionLabel.innerHTML = `
@@ -4851,6 +4868,10 @@
                 });
                 quizContainer.appendChild(questionElement);
             });
+
+            // Re-append the bottom buttons container after all questions are added
+            // This ensures it appears at the very end of the dynamically generated content
+            quizContainer.appendChild(quizButtonsBottom);
         }
 
         // Function to evaluate answers
@@ -4898,25 +4919,38 @@
 
             resultsDisplay.textContent = `You scored ${score} out of ${currentQuizQuestions.length} questions correctly!`;
             resultsDisplay.style.display = 'block';
-            evaluateBtn.style.display = 'none';
+
+            // Hide evaluate buttons, ensure reset buttons are visible
+            evaluateBtnTop.style.display = 'none';
+            evaluateBtnBottom.style.display = 'none';
+            resetTestBtnTop.style.display = 'block';
+            resetTestBtnBottom.style.display = 'block';
         }
 
         // Function to reset the test
         function resetTest() {
-            quizContainer.innerHTML = '';
+            quizContainer.innerHTML = ''; // Clear questions
             resultsDisplay.style.display = 'none';
-            evaluateBtn.style.display = 'none';
-            resetTestBtn.style.display = 'none';
+
+            // Hide evaluate/reset buttons, show start button
+            evaluateBtnTop.style.display = 'none';
+            resetTestBtnTop.style.display = 'none';
+            quizButtonsBottom.style.display = 'none'; // Hide bottom buttons container
+            evaluateBtnBottom.style.display = 'none';
+            resetTestBtnBottom.style.display = 'none';
+
             startTestBtn.style.display = 'block';
             numQuestionsInput.disabled = false;
-            numQuestionsInput.value = 36; // Reset to default
+            numQuestionsInput.value = 10; // Reset to default
             currentQuizQuestions = [];
         }
 
         // Event Listeners
         startTestBtn.addEventListener('click', startTest);
-        evaluateBtn.addEventListener('click', evaluateAnswers);
-        resetTestBtn.addEventListener('click', resetTest);
+        evaluateBtnTop.addEventListener('click', evaluateAnswers);
+        resetTestBtnTop.addEventListener('click', resetTest);
+        evaluateBtnBottom.addEventListener('click', evaluateAnswers);
+        resetTestBtnBottom.addEventListener('click', resetTest);
     </script>
 </body>
 </html>
