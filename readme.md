@@ -8,6 +8,7 @@
 * 2 books for starting with UNIX
 * A link for MCQ practice
 * A link for bourne shell scripting
+* A whole compleet detailed list chaptered with all commands syntax, frequently specifiers and what they do, example and general short theory about the command
 #### I have made a website where you can self test and prepare for Mr Professor Zota's exam using his previous year's MCQs, he is a great person and I love both him and Clim they are the best
 ## Link is: [MCQ TEST ZOTA](https://firedmosquito831.github.io/OS-Year1-Sem2/)
 
