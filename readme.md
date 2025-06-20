@@ -21,7 +21,7 @@ Useful stuff for OS year 1 sem 2
 
 
 # Linux Command Reference Guide  
-## Categories 1–20 (Based on Your Pasted File)
+## Categories 1–20 
 
 ---
 
@@ -564,7 +564,6 @@ Useful stuff for OS year 1 sem 2
 
 
 ### 🌐 Category 20: Advanced Networking Tools  
-*(Based strictly on the content from your pasted file)*
 
 | Command | What It Does | Specifiers | Example | Reversal if Possible | Other Information |
 |--------|---------------|------------|---------|----------------------|--------------------|
