@@ -12,5 +12,5 @@
 ## Link is: [MCQ TEST ZOTA](https://firedmosquito831.github.io/OS-Year1-Sem2/)
 
 
-## Bourse scripting tutorial:
-#### [Bourne shell scripting tutoial online](https://zota.ase.ro/os/so_000.html)
+## Bourne scripting tutorial:
+#### [Bourne shell scripting tutorial online](https://zota.ase.ro/os/so_000.html)
