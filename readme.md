@@ -3,7 +3,8 @@
 ### The contents of this repo are:
 * All the courses in one PDF
 * All extra readings one PDF
-* A cheatsheet
+* A cheatsheet for bash/shell knowledge ULTRA IMPORTANT
+* A super big and detailed cheatsheet regarding all unix/linux commands
 * A theory synthesis
 * 2 books for starting with UNIX
 * A link for MCQ practice
