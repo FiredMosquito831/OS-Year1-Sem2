@@ -4,6 +4,7 @@
 * All the courses in one PDF
 * All extra readings one PDF
 * A cheatsheet for bash/shell knowledge ULTRA IMPORTANT
+* A shorter cheatsheet with crucial unix/linux commands that i saw most throughout tests and exams
 * A super big and detailed cheatsheet regarding all unix/linux commands
 * A theory synthesis
 * 2 books for starting with UNIX
